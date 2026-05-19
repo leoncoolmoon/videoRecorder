@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidCut — 视频录像剪辑</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     APP ROOT
+════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ── TOP BAR ─────────────────────────────── -->
+  <header id="topbar">
+    <div id="topbar-left">
+      <span id="app-logo">VidCut</span>
+      <span id="project-name" contenteditable="true" spellcheck="false">未命名项目</span>
+    </div>
+    <div id="topbar-center">
+      <!-- Recording transport controls -->
+      <button class="tb-btn" id="btn-rec-toggle" data-tip="录制 / 暂停  (Enter)">
+        <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" class="rec-dot-icon"/></svg>
+      </button>
+      <button class="tb-btn" id="btn-stop" data-tip="停止录制">
+        <svg viewBox="0 0 20 20"><rect x="4" y="4" width="12" height="12" rx="2"/></svg>
+      </button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" id="btn-play" data-tip="播放预览  (P)">
+        <svg viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z"/></svg>
+      </button>
+      <button class="tb-btn" id="btn-rewind" data-tip="跳到开始  (Home)">
+        <svg viewBox="0 0 20 20"><path d="M5 4v12M7 10l8-5v10z"/></svg>
+      </button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn toggle-btn" id="btn-mode-insert" data-tip="插入模式  (默认)" data-active="true">
+        <svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke-width="2"/></svg>
+      </button>
+      <button class="tb-btn toggle-btn" id="btn-mode-overwrite" data-tip="覆盖模式  (Insert+Space)">
+        <svg viewBox="0 0 20 20"><rect x="3" y="8" width="14" height="4" rx="1"/><path d="M10 3v4M10 13v4" stroke-width="1.5"/></svg>
+      </button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" id="btn-add-tag" data-tip="添加标签  (Space)">
+        <svg viewBox="0 0 20 20"><path d="M3 10h14M10 3l4 7-4 7"/></svg>
+      </button>
+    </div>
+    <div id="topbar-right">
+      <button class="tb-btn" id="btn-save" data-tip="保存项目  (Ctrl+S)">
+        <svg viewBox="0 0 20 20"><path d="M4 4h9l3 3v9a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z"/><rect x="7" y="13" width="6" height="4"/><rect x="7" y="4" width="5" height="4"/></svg>
+      </button>
+      <button class="tb-btn" id="btn-export" data-tip="导出 MP4">
+        <svg viewBox="0 0 20 20"><path d="M10 3v9M6 8l4 4 4-4M4 14v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+      </button>
+      <button class="tb-btn" id="btn-settings-toggle" data-tip="设置面板">
+        <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2M5.05 5.05l1.41 1.41M13.54 13.54l1.41 1.41M5.05 14.95l1.41-1.41M13.54 6.46l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── MAIN WORKSPACE ──────────────────────── -->
+  <div id="workspace">
+
+    <!-- LEFT PANEL: Asset Library -->
+    <aside id="panel-assets" class="panel resizable-panel">
+      <div class="panel-titlebar" data-panel="assets">
+        <svg class="panel-icon" viewBox="0 0 16 16"><path d="M2 3h12v10H2zM5 3V1M11 3V1M2 7h12"/></svg>
+        <span>素材库</span>
+        <button class="panel-collapse-btn" data-target="panel-assets" data-tip="折叠素材库">
+          <svg viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4"/></svg>
+        </button>
+      </div>
+
+      <!-- Asset zoom slider -->
+      <div id="asset-zoom-bar">
+        <svg viewBox="0 0 14 14" width="12" height="12"><rect x="1" y="5" width="4" height="4" rx="1"/></svg>
+        <input type="range" id="asset-zoom" min="60" max="160" value="90" step="10">
+        <svg viewBox="0 0 14 14" width="14" height="14"><rect x="1" y="3" width="6" height="6" rx="1"/></svg>
+      </div>
+
+      <!-- Drop zone -->
+      <div id="asset-dropzone">
+        <svg viewBox="0 0 40 40" width="32" height="32"><path d="M20 8v16M12 16l8-8 8 8M8 28v4h24v-4"/></svg>
+        <span>拖入素材</span>
+        <span class="hint">视频 · 图片 · 音频</span>
+      </div>
+
+      <!-- Asset grid (populated by layers.js) -->
+      <div id="asset-grid"></div>
+    </aside>
+
+    <!-- RESIZE HANDLE: assets | center -->
+    <div class="resize-handle" id="rh-assets" data-left="panel-assets"></div>
+
+    <!-- CENTER: Preview + Timeline -->
+    <main id="panel-center">
+
+      <!-- TELEPROMPTER (floats above preview) -->
+      <div id="teleprompter-bar">
+        <div id="teleprompter-content">
+          <div id="teleprompter-text-wrap">
+            <div id="teleprompter-text">将台词文件拖入此处（支持 .txt / .lrc / .json）</div>
+          </div>
+          <div id="teleprompter-fade-top"></div>
+          <div id="teleprompter-fade-bottom"></div>
+        </div>
+        <div id="teleprompter-drag-handle" data-tip="拖动调整台词栏高度">
+          <svg viewBox="0 0 20 6" width="20" height="6"><path d="M2 2h16M2 4h16" stroke-width="1.2"/></svg>
+        </div>
+      </div>
+
+      <!-- PREVIEW AREA -->
+      <div id="preview-wrap">
+        <!-- Live camera feed -->
+        <video id="preview-live" autoplay muted playsinline></video>
+        <!-- Composite canvas (rendered by player.js) -->
+        <canvas id="preview-canvas"></canvas>
+        <!-- Cursor-position overlay canvas -->
+        <canvas id="preview-overlay" id="preview-overlay"></canvas>
+
+        <!-- Overlay: total time (top-right, green) -->
+        <div id="hud-total-time" class="hud-label hud-green">00:00:00.00</div>
+        <!-- Overlay: cursor time (top-left of overlay, red) -->
+        <div id="hud-cursor-time" class="hud-label hud-red">▶ 00:00:00.00</div>
+        <!-- Overlay: selection info (bottom-left, blue) -->
+        <div id="hud-selection" class="hud-label hud-blue" style="display:none">
+          <span id="hud-sel-start">—</span>
+          <span class="hud-sep">⟷</span>
+          <span id="hud-sel-dur">—</span>
+        </div>
+
+        <!-- Overlay opacity slider (shown on hover) -->
+        <div id="overlay-opacity-ctrl">
+          <input type="range" id="overlay-opacity" min="0" max="100" value="30" step="5">
+        </div>
+
+        <!-- REC badge -->
+        <div id="rec-badge" style="display:none">
+          <span class="rec-pulse"></span>REC
+        </div>
+      </div>
+
+      <!-- TIMELINE AREA -->
+      <div id="timeline-wrap">
+
+        <!-- Timeline toolbar -->
+        <div id="timeline-toolbar">
+          <div class="tl-tool-group">
+            <button class="tl-btn" id="tl-btn-zoom-out" data-tip="缩小时间轴">
+              <svg viewBox="0 0 16 16"><circle cx="6" cy="6" r="4"/><path d="M4 6h4M10 10l4 4"/></svg>
+            </button>
+            <input type="range" id="tl-zoom" min="10" max="800" value="80" step="10">
+            <button class="tl-btn" id="tl-btn-zoom-in" data-tip="放大时间轴">
+              <svg viewBox="0 0 16 16"><circle cx="6" cy="6" r="4"/><path d="M4 6h4M6 4v4M10 10l4 4"/></svg>
+            </button>
+          </div>
+          <div class="tl-sep"></div>
+          <div class="tl-tool-group">
+            <button class="tl-btn" id="tl-btn-del-sel" data-tip="删除选区  (Del)">
+              <svg viewBox="0 0 16 16"><path d="M3 4h10M5 4V3h6v1M6 7v5M10 7v5M4 4l1 9h6l1-9"/></svg>
+            </button>
+            <button class="tl-btn" id="tl-btn-play-sel" data-tip="播放选区">
+              <svg viewBox="0 0 16 16"><path d="M3 3h10v10H3zM6 5l5 3-5 3z"/></svg>
+            </button>
+            <button class="tl-btn" id="tl-btn-export-sel" data-tip="导出选区">
+              <svg viewBox="0 0 16 16"><path d="M8 2v8M5 7l3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+            </button>
+          </div>
+          <div class="tl-sep"></div>
+          <!-- Playback speed -->
+          <label class="tl-label" for="tl-speed">速率</label>
+          <input type="range" id="tl-speed" min="0.5" max="2" step="0.25" value="1" style="width:56px">
+          <span class="tl-val" id="tl-speed-val">1×</span>
+        </div>
+
+        <!-- Timeline ruler + tracks container -->
+        <div id="timeline-scroll-wrap">
+          <div id="timeline-inner">
+            <!-- Ruler (rendered by timeline.js) -->
+            <div id="tl-ruler">
+              <div id="tl-ruler-track-labels" style="width:72px;flex-shrink:0"></div>
+              <div id="tl-ruler-marks"></div>
+            </div>
+            <!-- Tracks (rendered by timeline.js) -->
+            <div id="tl-tracks">
+              <!-- Track rows injected here by timeline.js -->
+              <!-- Each row: .tl-row > .tl-row-label + .tl-row-content -->
+            </div>
+            <!-- Playhead (absolutely positioned inside tl-inner) -->
+            <div id="tl-playhead">
+              <div id="tl-playhead-head"></div>
+            </div>
+            <!-- Selection range highlight -->
+            <div id="tl-selection" style="display:none"></div>
+          </div>
+        </div>
+
+        <!-- Timeline horizontal scrollbar -->
+        <div id="tl-scrollbar">
+          <div id="tl-scrollbar-track">
+            <div id="tl-scrollbar-thumb"></div>
+          </div>
+        </div>
+
+        <!-- Selection info bar -->
+        <div id="tl-sel-info" style="display:none">
+          <span>起点 <code id="tl-sel-start-val">—</code></span>
+          <span>时长 <code id="tl-sel-dur-val">—</code></span>
+          <span>终点 <code id="tl-sel-end-val">—</code></span>
+        </div>
+
+      </div><!-- /timeline-wrap -->
+    </main>
+
+    <!-- RESIZE HANDLE: center | settings -->
+    <div class="resize-handle" id="rh-settings" data-right="panel-settings"></div>
+
+    <!-- RIGHT PANEL: Settings -->
+    <aside id="panel-settings" class="panel resizable-panel">
+      <div class="panel-titlebar" data-panel="settings">
+        <svg class="panel-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.64 3.64l1.41 1.41M10.95 10.95l1.41 1.41M3.64 12.36l1.41-1.41M10.95 5.05l1.41-1.41"/></svg>
+        <span>设置</span>
+        <button class="panel-collapse-btn" data-target="panel-settings" data-tip="折叠设置">
+          <svg viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></svg>
+        </button>
+      </div>
+
+      <!-- Settings tabs -->
+      <div id="settings-tabs">
+        <button class="stab active" data-tab="teleprompter" data-tip="台词设置">
+          <svg viewBox="0 0 16 16"><path d="M2 3h12v9H2zM5 14h6"/><path d="M5 6h6M5 9h4"/></svg>
+        </button>
+        <button class="stab" data-tab="video" data-tip="视频处理">
+          <svg viewBox="0 0 16 16"><rect x="1" y="3" width="10" height="10" rx="1"/><path d="M11 6l4-2v8l-4-2"/></svg>
+        </button>
+        <button class="stab" data-tab="export" data-tip="保存与导出">
+          <svg viewBox="0 0 16 16"><path d="M8 2v8M5 7l3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+        </button>
+        <button class="stab" data-tab="system" data-tip="系统">
+          <svg viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="2"/><path d="M1 5h14M5 5v10"/></svg>
+        </button>
+      </div>
+
+      <!-- Settings content (populated by settings.js) -->
+      <div id="settings-content"></div>
+    </aside>
+
+  </div><!-- /workspace -->
+
+  <!-- ── STATUS BAR ──────────────────────────── -->
+  <footer id="statusbar">
+    <span class="sb-item">
+      <span class="sb-label">指示器</span>
+      <code id="sb-playhead">00:00:00.00</code>
+    </span>
+    <span class="sb-sep">·</span>
+    <span class="sb-item">
+      <span class="sb-label">总时长</span>
+      <code id="sb-duration">00:00:00.00</code>
+    </span>
+    <span class="sb-sep">·</span>
+    <span class="sb-item">
+      <span class="sb-label">帧率</span>
+      <code id="sb-fps">30fps</code>
+    </span>
+    <span class="sb-sep">·</span>
+    <span class="sb-item">
+      <span class="sb-label">模式</span>
+      <code id="sb-mode">插入</code>
+    </span>
+    <span class="sb-sep">·</span>
+    <span class="sb-item">
+      <span class="sb-label">状态</span>
+      <code id="sb-state">就绪</code>
+    </span>
+
+    <!-- Hover tip (right-aligned) -->
+    <span id="sb-tip"></span>
+  </footer>
+
+</div><!-- /app -->
+
+<!-- Export progress modal -->
+<div id="export-modal" style="display:none">
+  <div id="export-modal-inner">
+    <div id="export-modal-title">正在导出…</div>
+    <div id="export-progress-bar"><div id="export-progress-fill"></div></div>
+    <div id="export-progress-label">0%</div>
+    <button id="export-cancel-btn" data-tip="取消导出">取消</button>
+  </div>
+</div>
+
+<!-- JS modules (order matters) -->
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/layers.js"></script>
+<script src="js/tags.js"></script>
+<script src="js/timeline.js"></script>
+<script src="js/player.js"></script>
+<script src="js/recorder.js"></script>
+<script src="js/teleprompter.js"></script>
+<script src="js/transition.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/keyboard.js"></script>
+<script src="js/export.js"></script>
+<script src="js/project.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
