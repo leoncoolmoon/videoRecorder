@@ -297,10 +297,15 @@ const UI = (() => {
       if (hudEl) hudEl.textContent = formatTime(value);
     });
 
-    // FPS
+    // FPS & Aspect Ratio
     State.on('state:change:project', ({ value }) => {
       const el = document.getElementById('sb-fps');
       if (el) el.textContent = (value?.meta?.fps || 30) + 'fps';
+
+      const meta = value?.meta;
+      if (meta?.width && meta?.height) {
+        document.documentElement.style.setProperty('--proj-aspect', `${meta.width} / ${meta.height}`);
+      }
     });
 
     // Mode

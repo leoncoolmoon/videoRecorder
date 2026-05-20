@@ -376,11 +376,11 @@ const Teleprompter = (() => {
       const onMove = e2 => {
         const dy   = e2.clientY - startY;
         const maxH = window.innerHeight * 0.8;
-        const newH = Math.max(0, Math.min(maxH, startH + dy));
+        const minH = 44; // Minimum height to remain visible and interactive
+        const newH = Math.max(minH, Math.min(maxH, startH + dy));
         _barEl.style.height = newH + 'px';
         document.documentElement.style.setProperty('--teleprompter-h', newH + 'px');
-        if (newH < 8) setVisible(false);
-        else _visible = true;
+        _visible = true;
       };
       const onUp = () => {
         document.body.style.cursor = '';

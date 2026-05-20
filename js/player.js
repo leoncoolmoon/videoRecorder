@@ -53,7 +53,11 @@ const Player = (() => {
     // State subscriptions
     State.on('player:seek',            ({ value } = {}) => seek(typeof value === 'number' ? value : 0));
     State.on('player:setspeed',        v  => { _speed = v; });
-    State.on('player:overlayopacity',  v  => { _overlayOpacity = v; _renderOverlay(_overlayTime); });
+    State.on('player:overlayopacity',  v  => {
+      _overlayOpacity = v;
+      _renderOverlay(_overlayTime);
+      _updatePauseOpacity();
+    });
     State.on('state:change:playhead',  ({ value }) => {
       if (!_playing) { _overlayTime = value; _renderOverlay(value); }
     });
@@ -76,13 +80,16 @@ const Player = (() => {
   }
 
   function _resizeCanvases() {
-    const viewport = document.getElementById('preview-viewport');
-    if (!viewport) return;
-    const w = viewport.offsetWidth || 640;
-    const h = viewport.offsetHeight || 360;
+    const proj = State.get('project')?.meta ?? {};
+    const w = proj.width  || 1920;
+    const h = proj.height || 1080;
+
     for (const c of [_canvas, _overlay]) {
       if (!c) continue;
-      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+      if (c.width !== w || c.height !== h) {
+        c.width = w;
+        c.height = h;
+      }
     }
   }
 
@@ -108,6 +115,7 @@ const Player = (() => {
     _selEnd     = selectionEnd ?? null;
     _speed      = State.getSetting('previewSpeed') || 1;
     State.set('isPlaying', true);
+    _updatePauseOpacity();
     _startAudioLayers(_startTime);
     _loop();
   }
@@ -118,6 +126,14 @@ const Player = (() => {
     if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
     _stopAudioLayers();
     State.set('isPlaying', false);
+    _updatePauseOpacity();
+  }
+
+  function _updatePauseOpacity() {
+    if (!_canvas) return;
+    const isPaused = !State.get('isPlaying') && !State.get('isRecording');
+    // If paused, slightly dim the canvas to show live video better if camera is active
+    _canvas.style.opacity = isPaused ? (1 - _overlayOpacity) : 1;
   }
 
   function seek(time) {
@@ -219,10 +235,11 @@ const Player = (() => {
   function _drawLayer(ctx, layer, time, cw, ch, forExport) {
     if (layer.type === 'audio') return; // audio handled separately
 
-    const x  = layer.x      * cw;
-    const y  = layer.y      * ch;
-    const lw = layer.width  * cw;
-    const lh = layer.height * ch;
+    // Basic coordinate mapping (0..1 normalized to canvas pixels)
+    let x  = layer.x      * cw;
+    let y  = layer.y      * ch;
+    let lw = layer.width  * cw;
+    let lh = layer.height * ch;
 
     ctx.save();
     ctx.globalAlpha = layer.opacity ?? 1;
@@ -233,33 +250,51 @@ const Player = (() => {
     if (layer.type === 'image') {
       const img = _getImage(layer.src);
       if (img?.complete && img.naturalWidth > 0) {
+        // Adjust for aspect ratio if it's supposed to fill the designated area proportionally
+        const { dx, dy, dw, dh } = _fitInRect(img.naturalWidth, img.naturalHeight, x, y, lw, lh);
         if (layer.chromaKey) {
-          _drawWithChromaKey(ctx, img, x, y, lw, lh, layer.chromaKey);
+          _drawWithChromaKey(ctx, img, dx, dy, dw, dh, layer.chromaKey);
         } else {
-          ctx.drawImage(img, x, y, lw, lh);
+          ctx.drawImage(img, dx, dy, dw, dh);
         }
       }
     } else if (layer.type === 'video' || layer.type === 'recording') {
       const vid = _getVideo(layer);
       if (vid) {
         const srcTime = layer.sourceStart + (time - layer.timelineStart) * (layer.speed ?? 1);
-        // Sync video currentTime when not playing or when seeking
         if (!_playing || forExport) {
           if (Math.abs(vid.currentTime - srcTime) > 0.08) {
             vid.currentTime = Math.max(0, srcTime);
           }
         }
         if (vid.readyState >= 2) {
+          const { dx, dy, dw, dh } = _fitInRect(vid.videoWidth, vid.videoHeight, x, y, lw, lh);
           if (layer.chromaKey) {
-            _drawWithChromaKey(ctx, vid, x, y, lw, lh, layer.chromaKey);
+            _drawWithChromaKey(ctx, vid, dx, dy, dw, dh, layer.chromaKey);
           } else {
-            ctx.drawImage(vid, x, y, lw, lh);
+            ctx.drawImage(vid, dx, dy, dw, dh);
           }
         }
       }
     }
 
     ctx.restore();
+  }
+
+  /** Fit source aspect into target rect (contain logic) */
+  function _fitInRect(srcW, srcH, tx, ty, tw, th) {
+    const srcAspect = srcW / srcH;
+    const tgtAspect = tw / th;
+    let dw = tw, dh = th, dx = tx, dy = ty;
+
+    if (srcAspect > tgtAspect) {
+      dh = tw / srcAspect;
+      dy = ty + (th - dh) / 2;
+    } else {
+      dw = th * srcAspect;
+      dx = tx + (tw - dw) / 2;
+    }
+    return { dx, dy, dw, dh };
   }
 
   // ── ChromaKey (simple color-range keying) ────────

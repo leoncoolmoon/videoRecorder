@@ -466,10 +466,18 @@ const Timeline = (() => {
     head.addEventListener('mousedown', e => {
       if (e.button !== 0) return;
       e.preventDefault();
+      e.stopPropagation();
+
+      const rect = head.getBoundingClientRect();
+      const offset = e.clientX - (rect.left + rect.width / 2);
+
       document.body.style.cursor = 'ew-resize';
       const onMove = e2 => {
-        const t = _clientXToTime(e2.clientX);
-        if (t !== null) { State.set('playhead', t); State.emit('player:seek', t); }
+        const t = _clientXToTime(e2.clientX - offset);
+        if (t !== null) {
+          State.set('playhead', t);
+          State.emit('player:seek', t);
+        }
       };
       const onUp = () => {
         document.body.style.cursor = '';
