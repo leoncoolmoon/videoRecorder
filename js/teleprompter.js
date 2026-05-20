@@ -92,8 +92,9 @@ const Teleprompter = (() => {
     _entries   = null;
     State.setProject({ teleprompter: { text, entries: null, format: 'plain' } });
     if (_textEl) {
-      _textEl.innerHTML = '';
-      _textEl.textContent = text;
+      _textEl.innerHTML = text.split('\n').map((line, i) =>
+        `<div class="tp-row"><span class="tp-ln">${i+1}</span><span class="tp-text">${_escapeHtml(line) || '&nbsp;'}</span></div>`
+      ).join('');
     }
   }
 
@@ -165,8 +166,8 @@ const Teleprompter = (() => {
   function _renderTimedText(entries) {
     if (!_textEl) return;
     _textEl.innerHTML = entries.map((e, i) =>
-      `<span class="tp-line future" data-idx="${i}" data-time="${e.time}">${_escapeHtml(e.text)}</span>`
-    ).join('\n');
+      `<div class="tp-row tp-line future" data-idx="${i}" data-time="${e.time}"><span class="tp-ln">${i+1}</span><span class="tp-text">${_escapeHtml(e.text)}</span></div>`
+    ).join('');
   }
 
   function _escapeHtml(s) {
@@ -374,7 +375,8 @@ const Teleprompter = (() => {
 
       const onMove = e2 => {
         const dy   = e2.clientY - startY;
-        const newH = Math.max(0, Math.min(320, startH + dy));
+        const maxH = window.innerHeight * 0.8;
+        const newH = Math.max(0, Math.min(maxH, startH + dy));
         _barEl.style.height = newH + 'px';
         document.documentElement.style.setProperty('--teleprompter-h', newH + 'px');
         if (newH < 8) setVisible(false);
