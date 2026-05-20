@@ -71,8 +71,10 @@ const Timeline = (() => {
   function render() {
     if (!_inner) return;
     const zoom     = State.get('zoomLevel');
+    // Grow based on content duration, but keep a minimum 30s buffer
     const duration = Math.max(State.get('totalDuration') || 0, 30);
-    const totalPx  = Math.round(duration * zoom) + 400;
+    // Add some extra space (10% or 100px) at the end for easier interaction
+    const totalPx  = Math.round(duration * zoom) + 100;
 
     _inner.style.width = (totalPx + LABEL_W) + 'px';
 

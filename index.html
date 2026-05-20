@@ -31,6 +31,9 @@
       <button class="tb-btn" id="btn-export" data-tip="导出 MP4">
         <svg viewBox="0 0 20 20"><path d="M10 3v9M6 8l4 4 4-4M4 14v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
       </button>
+      <button class="tb-btn" id="btn-fullscreen" data-tip="全屏模式 (F11)">
+        <svg viewBox="0 0 20 20"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>
+      </button>
       <button class="tb-btn" id="btn-settings-toggle" data-tip="设置面板">
         <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2M5.05 5.05l1.41 1.41M13.54 13.54l1.41 1.41M5.05 14.95l1.41-1.41M13.54 6.46l1.41-1.41"/></svg>
       </button>
@@ -110,10 +113,6 @@
           <span id="hud-sel-dur">—</span>
         </div>
 
-        <!-- Overlay opacity slider (shown on hover) -->
-        <div id="overlay-opacity-ctrl">
-          <input type="range" id="overlay-opacity" min="0" max="100" value="30" step="5">
-        </div>
 
         <!-- REC badge -->
         <div id="rec-badge" style="display:none">
@@ -219,9 +218,9 @@
 
         <!-- Selection info bar -->
         <div id="tl-sel-info" style="display:none">
-          <span>起点 <code id="tl-sel-start-val">—</code></span>
-          <span>时长 <code id="tl-sel-dur-val">—</code></span>
-          <span>终点 <code id="tl-sel-end-val">—</code></span>
+          <span><span class="lbl">起点</span> <code id="tl-sel-start-val">—</code></span>
+          <span><span class="lbl">时长</span> <code id="tl-sel-dur-val">—</code></span>
+          <span><span class="lbl">终点</span> <code id="tl-sel-end-val">—</code></span>
         </div>
 
       </div><!-- /timeline-wrap -->

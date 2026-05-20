@@ -27,8 +27,9 @@ const State = (() => {
   // ── Default settings ───────────────────────────
   const defaultSettings = () => ({
     // System
-    language: 'zh',
+    language: (navigator.language || 'zh').startsWith('en') ? 'en' : 'zh',
     theme: 'dark',
+    uiFontSize: 13,
 
     // Recording
     resolution: '1920x1080',

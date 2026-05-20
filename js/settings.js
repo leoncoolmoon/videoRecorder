@@ -14,65 +14,130 @@ const Settings = (() => {
     zh: {
       // Tab labels
       tab_teleprompter: '台词', tab_video: '视频', tab_export: '保存', tab_system: '系统',
-      // Teleprompter
+      // Sections
       sec_display: '显示', sec_export_tp: '导出台词', sec_tag_sel: '标签选区',
+      sec_recording: '录制', sec_overlay: '叠加预览', sec_transition: '过渡', sec_colors: '颜色',
+      sec_engine: '导出引擎', sec_format: '格式', sec_project: '项目', sec_export_video: '导出视频',
+      sec_appearance: '外观', sec_autosave: '自动保存', sec_danger: '危险操作',
+      // Fields
       show_teleprompter: '显示台词', collapse_on_pause: '暂停时收起',
       font_size: '字体大小', bg_color: '背景颜色', font_color: '文字颜色',
       align: '对齐', align_left: '左对齐', align_center: '居中', align_right: '右对齐',
       export_with_tp: '导出时叠加台词',
       tag_sel_mode: '点击Tag选区',
       tag_sel_cursor: '光标→Tag', tag_sel_tag: 'Tag→下一Tag',
-      // Video
-      sec_recording: '录制', sec_overlay: '叠加预览', sec_transition: '过渡', sec_colors: '颜色',
       resolution: '分辨率', fps: '帧率', video_bitrate: '视频码率', audio_bitrate: '音频码率',
       camera: '摄像头', microphone: '麦克风', no_devices: '（无设备）',
       overlay_opacity: '叠加透明度',
       transition_type: '过渡类型', fade: '淡入淡出', optical_flow: '光流（预留）',
       transition_frames: '过渡帧数',
       tag_color: 'Tag 颜色', sel_color: '选区颜色',
-      // Export
-      sec_engine: '导出引擎', sec_format: '格式', sec_project: '项目', sec_export_video: '导出视频',
       engine: '引擎', webcodecs: 'WebCodecs（轻量）', ffmpeg: 'ffmpeg.wasm（完整）',
       format: '格式', export_speed: '播放倍速', export_with_tp2: '叠加台词',
       save_project: '保存项目 (JSON+ZIP)', load_project: '载入项目 (ZIP)',
       export_mp4: '导出 MP4', export_selection: '导出选区',
-      // System
-      sec_appearance: '外观', sec_autosave: '自动保存', sec_danger: '危险操作',
       theme: '主题', theme_dark: '深色', theme_light: '浅色', theme_system: '跟随系统',
-      language: '语言',
+      language: '语言', ui_font_size: '界面文字大小',
       autosave: '自动保存',
       new_project: '新建项目', reset_settings: '恢复默认设置',
       confirm_new: '新建项目将丢失未保存内容，确认吗？',
       confirm_reset: '恢复所有设置到默认值？',
+      // Static Labels & Tooltips
+      label_assets: '素材库',
+      label_settings: '设置',
+      label_teleprompter_hint: '将台词文件拖入此处（支持 .txt / .lrc / .json）',
+      label_drop_assets: '拖入素材',
+      label_drop_hint: '视频 · 图片 · 音频',
+      label_timeline_speed: '速率',
+      label_timeline_start: '起点',
+      label_timeline_duration: '时长',
+      label_timeline_end: '终点',
+      sb_playhead: '指示器',
+      sb_total: '总时长',
+      sb_fps: '帧率',
+      sb_mode: '模式',
+      sb_status: '状态',
+      tip_save: '保存项目 (Ctrl+S)',
+      tip_export: '导出 MP4',
+      tip_fullscreen: '全屏模式 (F11)',
+      tip_exit_fullscreen: '退出全屏',
+      tip_settings: '设置面板',
+      tip_collapse_assets: '折叠素材库',
+      tip_collapse_settings: '折叠设置',
+      tip_rec: '录制 / 暂停 (Enter)',
+      tip_stop: '停止录制',
+      tip_play: '播放预览 (P)',
+      tip_rewind: '跳到开始 (Home)',
+      tip_mode_insert: '插入模式 (默认)',
+      tip_mode_overwrite: '覆盖模式 (Insert+Space)',
+      tip_add_tag: '添加标签 (Space)',
+      tip_zoom_out: '缩小时间轴',
+      tip_zoom_in: '放大时间轴',
+      tip_del_sel: '删除选区 (Del)',
+      tip_play_sel: '播放选区',
+      tip_export_sel: '导出选区',
     },
     en: {
       tab_teleprompter: 'Script', tab_video: 'Video', tab_export: 'Save', tab_system: 'System',
       sec_display: 'Display', sec_export_tp: 'Export Script', sec_tag_sel: 'Tag Selection',
+      sec_recording: 'Recording', sec_overlay: 'Preview Overlay', sec_transition: 'Transition', sec_colors: 'Colors',
+      sec_engine: 'Export Engine', sec_format: 'Format', sec_project: 'Project', sec_export_video: 'Export Video',
+      sec_appearance: 'Appearance', sec_autosave: 'Auto-Save', sec_danger: 'Danger Zone',
       show_teleprompter: 'Show Script', collapse_on_pause: 'Collapse on Pause',
       font_size: 'Font Size', bg_color: 'Background', font_color: 'Text Color',
       align: 'Align', align_left: 'Left', align_center: 'Center', align_right: 'Right',
       export_with_tp: 'Overlay script on export',
       tag_sel_mode: 'Click tag to select',
       tag_sel_cursor: 'Cursor → Tag', tag_sel_tag: 'Tag → Next Tag',
-      sec_recording: 'Recording', sec_overlay: 'Preview Overlay', sec_transition: 'Transition', sec_colors: 'Colors',
       resolution: 'Resolution', fps: 'Frame Rate', video_bitrate: 'Video Bitrate', audio_bitrate: 'Audio Bitrate',
       camera: 'Camera', microphone: 'Microphone', no_devices: '(no devices)',
       overlay_opacity: 'Overlay Opacity',
       transition_type: 'Transition', fade: 'Fade', optical_flow: 'Optical Flow (future)',
       transition_frames: 'Transition Frames',
       tag_color: 'Tag Color', sel_color: 'Selection Color',
-      sec_engine: 'Export Engine', sec_format: 'Format', sec_project: 'Project', sec_export_video: 'Export Video',
       engine: 'Engine', webcodecs: 'WebCodecs (light)', ffmpeg: 'ffmpeg.wasm (full)',
       format: 'Format', export_speed: 'Playback Speed', export_with_tp2: 'Overlay Script',
       save_project: 'Save Project (JSON+ZIP)', load_project: 'Load Project (ZIP)',
       export_mp4: 'Export MP4', export_selection: 'Export Selection',
-      sec_appearance: 'Appearance', sec_autosave: 'Auto-Save', sec_danger: 'Danger Zone',
       theme: 'Theme', theme_dark: 'Dark', theme_light: 'Light', theme_system: 'System',
-      language: 'Language',
+      language: 'Language', ui_font_size: 'UI Font Size',
       autosave: 'Auto-Save',
       new_project: 'New Project', reset_settings: 'Reset Settings',
       confirm_new: 'New project will discard unsaved changes. Continue?',
       confirm_reset: 'Reset all settings to defaults?',
+      label_assets: 'Asset Library',
+      label_settings: 'Settings',
+      label_teleprompter_hint: 'Drop script files here (.txt / .lrc / .json)',
+      label_drop_assets: 'Drop Assets',
+      label_drop_hint: 'Video · Image · Audio',
+      label_timeline_speed: 'Speed',
+      label_timeline_start: 'Start',
+      label_timeline_duration: 'Dur',
+      label_timeline_end: 'End',
+      sb_playhead: 'Playhead',
+      sb_total: 'Total',
+      sb_fps: 'FPS',
+      sb_mode: 'Mode',
+      sb_status: 'Status',
+      tip_save: 'Save Project (Ctrl+S)',
+      tip_export: 'Export MP4',
+      tip_fullscreen: 'Fullscreen (F11)',
+      tip_exit_fullscreen: 'Exit Fullscreen',
+      tip_settings: 'Settings Panel',
+      tip_collapse_assets: 'Collapse Assets',
+      tip_collapse_settings: 'Collapse Settings',
+      tip_rec: 'Record / Pause (Enter)',
+      tip_stop: 'Stop Recording',
+      tip_play: 'Play Preview (P)',
+      tip_rewind: 'Rewind (Home)',
+      tip_mode_insert: 'Insert Mode (Default)',
+      tip_mode_overwrite: 'Overwrite Mode (Insert+Space)',
+      tip_add_tag: 'Add Tag (Space)',
+      tip_zoom_out: 'Zoom Out',
+      tip_zoom_in: 'Zoom In',
+      tip_del_sel: 'Delete Selection (Del)',
+      tip_play_sel: 'Play Selection',
+      tip_export_sel: 'Export Selection',
     }
   };
 
@@ -80,18 +145,17 @@ const Settings = (() => {
     const lang = State.getSetting('language') || 'zh';
     return (I18N[lang] || I18N.zh)[key] || key;
   }
-  window.t = t;  // expose for other modules
+  window.t = t;
 
-  // ════════════════════════════════════════════════
-  // INIT
-  // ════════════════════════════════════════════════
   function init(panelEl) {
     _contentEl = panelEl || document.getElementById('settings-content');
     _initTabs();
     renderTab(_activeTab);
 
-    // Re-render on language change
-    State.on('settings:change:language', () => renderTab(_activeTab));
+    State.on('settings:change:language', () => {
+      renderTab(_activeTab);
+      UI.updateStaticLabels();
+    });
 
     console.info('[Settings] Initialized.');
   }
@@ -116,9 +180,6 @@ const Settings = (() => {
        system:       _renderSystem }[tab] || _renderTeleprompter)();
   }
 
-  // ════════════════════════════════════════════════
-  // BUILDER HELPERS
-  // ════════════════════════════════════════════════
   function _sec(title) {
     const sec = document.createElement('div');
     sec.className = 'settings-section';
@@ -201,7 +262,6 @@ const Settings = (() => {
     const inp = document.createElement('input');
     inp.type  = 'color';
     const curVal = State.getSetting(key) || '#ffffff';
-    // If it's rgba, we need to extract hex for the color picker
     inp.value = curVal.startsWith('rgba') ? _rgbaToHex(curVal) : curVal;
 
     inp.addEventListener('input', () => {
@@ -223,7 +283,6 @@ const Settings = (() => {
         if (onChange) onChange(finalColor);
       });
       slider.style.flex = '1';
-      // Initialize slider value correctly
       const sliderInp = slider.querySelector('input');
       if (sliderInp) sliderInp.value = initialAlpha;
       const sliderVal = slider.querySelector('.setting-val');
@@ -266,18 +325,14 @@ const Settings = (() => {
     return btn;
   }
 
-  // Device selector (async, populates after enum)
   function _deviceSelect(kind, settingKey, onChangeAsync) {
     const sel = document.createElement('select');
     const cur = State.getSetting(settingKey);
-
-    // Placeholder option
     const ph = document.createElement('option');
     ph.textContent = t('no_devices');
     ph.disabled = true;
     sel.appendChild(ph);
 
-    // Attempt to get devices from Recorder
     const fill = (devices) => {
       sel.innerHTML = '';
       if (!devices || !devices.length) {
@@ -292,7 +347,6 @@ const Settings = (() => {
       }
     };
 
-    // Try immediately, then listen for device update
     try {
       const devs = Recorder.getDevices();
       fill(kind === 'video' ? devs.video : devs.audio);
@@ -309,9 +363,6 @@ const Settings = (() => {
     return sel;
   }
 
-  // ════════════════════════════════════════════════
-  // TAB: 台词
-  // ════════════════════════════════════════════════
   function _renderTeleprompter() {
     const s1 = _sec(t('sec_display'));
     _row(s1, t('show_teleprompter'),
@@ -338,9 +389,6 @@ const Settings = (() => {
         [['cursor-to-tag', t('tag_sel_cursor')], ['tag-to-tag', t('tag_sel_tag')]]));
   }
 
-  // ════════════════════════════════════════════════
-  // TAB: 视频处理
-  // ════════════════════════════════════════════════
   function _renderVideo() {
     const s1 = _sec(t('sec_recording'));
     _row(s1, t('resolution'),
@@ -357,7 +405,6 @@ const Settings = (() => {
     _row(s1, t('audio_bitrate'),
       _slider('audioBitrate', 64, 320, 32, 'k'));
 
-    // Device selectors
     _row(s1, t('camera'),
       _deviceSelect('video', 'activeVideoDeviceId', id => Recorder.setVideoDevice(id)));
     _row(s1, t('microphone'),
@@ -375,18 +422,15 @@ const Settings = (() => {
         ['optical-flow', t('optical_flow')],
       ]));
     _row(s3, t('transition_frames'),
-      _slider('transitionFrames', 0, 30, 1, t('frame_unit') || '帧'));
+      _slider('transitionFrames', 0, 30, 1, '帧'));
 
     const s4 = _sec(t('sec_colors'));
     _row(s4, t('tag_color'),
-      _color('tagColor'));
+      _color('tagColor', null, true));
     _row(s4, t('sel_color'),
-      _color('selectionColor'));
+      _color('selectionColor', null, true));
   }
 
-  // ════════════════════════════════════════════════
-  // TAB: 保存/导出
-  // ════════════════════════════════════════════════
   function _renderExport() {
     const s1 = _sec(t('sec_engine'));
     _row(s1, t('engine'),
@@ -427,7 +471,6 @@ const Settings = (() => {
         State.emit('export:start', { selection: State.get('selection') });
       }));
 
-    // Wire top-bar buttons (idempotent – may already be wired from main.js)
     const btnExport = document.getElementById('btn-export');
     if (btnExport && !btnExport._wired) {
       btnExport._wired = true;
@@ -442,9 +485,6 @@ const Settings = (() => {
     }
   }
 
-  // ════════════════════════════════════════════════
-  // TAB: 系统
-  // ════════════════════════════════════════════════
   function _renderSystem() {
     const s1 = _sec(t('sec_appearance'));
     _row(s1, t('theme'),
@@ -456,6 +496,8 @@ const Settings = (() => {
     _row(s1, t('language'),
       _select('language', [['zh','中文'],['en','English']],
         () => renderTab(_activeTab)));
+    _row(s1, t('ui_font_size'),
+      _slider('uiFontSize', 10, 20, 1, 'px', v => UI.applyFontSize(v)));
 
     const s2 = _sec(t('sec_autosave'));
     _row(s2, t('autosave'),
@@ -472,7 +514,6 @@ const Settings = (() => {
       }));
   }
 
-  // ── Helpers ────────────────────────────────────
   function _dl(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a   = Object.assign(document.createElement('a'), { href: url, download: filename });

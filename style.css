@@ -128,7 +128,7 @@ html, body { height: 100%; overflow: hidden; }
 
 body {
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 1rem;
   background: var(--bg-base);
   color: var(--text-primary);
   line-height: 1.4;
@@ -618,16 +618,6 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 #hud-selection   { bottom: 10px; left: 12px; color: var(--blue) !important; }
 .hud-sep { margin: 0 6px; opacity: 0.5; }
 
-#overlay-opacity-ctrl {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  z-index: 10;
-  opacity: 0;
-  transition: opacity var(--transition-mid);
-}
-#preview-wrap:hover #overlay-opacity-ctrl { opacity: 1; }
-#overlay-opacity { width: 72px; }
 
 #rec-badge {
   position: absolute;
@@ -745,9 +735,10 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   font-family: var(--font-mono);
   font-size: 9px;
   color: var(--text-tertiary);
-  margin-top: 3px;
+  margin-top: 1px;
   padding-left: 3px;
   white-space: nowrap;
+  line-height: 1;
 }
 .tl-ruler-mark.major .tl-ruler-mark-line { height: 14px; background: var(--border-hi); }
 .tl-ruler-mark.major .tl-ruler-mark-label { color: var(--text-secondary); }
