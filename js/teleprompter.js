@@ -309,9 +309,7 @@ const Teleprompter = (() => {
   function setVisible(bool) {
     _visible = bool;
     if (_barEl) {
-      _barEl.style.height   = bool ? '' : '0px';
-      _barEl.style.overflow = bool ? '' : 'hidden';
-      _barEl.style.minHeight = bool ? '' : '0';
+      _barEl.classList.toggle('collapsed', !bool);
     }
   }
 

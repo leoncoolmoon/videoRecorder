@@ -76,10 +76,10 @@ const Player = (() => {
   }
 
   function _resizeCanvases() {
-    const wrap = document.getElementById('preview-wrap');
-    if (!wrap) return;
-    const w = wrap.offsetWidth || 640;
-    const h = wrap.offsetHeight || 360;
+    const viewport = document.getElementById('preview-viewport');
+    if (!viewport) return;
+    const w = viewport.offsetWidth || 640;
+    const h = viewport.offsetHeight || 360;
     for (const c of [_canvas, _overlay]) {
       if (!c) continue;
       if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }

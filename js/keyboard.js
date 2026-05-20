@@ -167,9 +167,9 @@ const Keyboard = (() => {
 
     function tick() {
       if (!_arrowHeld) return;
-      // Linearly increase speed over 2 seconds
+      // Linearly increase speed over time
       const held = (performance.now() - _arrowHeldStart) / 1000;
-      _arrowSpeed = Math.min(maxSpeed, 1 + held * held * 10);
+      _arrowSpeed = Math.min(maxSpeed, 1 + held * 8);
 
       if (shift) _stepSelectionArrow(_arrowDir);
       else _stepPlayhead(_arrowDir);

@@ -153,7 +153,7 @@ input  { font-family: var(--font-ui); color: inherit; }
 
 #workspace {
   display: grid;
-  grid-template-columns: var(--asset-panel-w) 4px 1fr 4px var(--settings-panel-w);
+  grid-template-columns: 1fr 4px 1fr 4px 1fr;
   overflow: hidden;
   min-height: 0;
 }
@@ -383,17 +383,22 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 
 /* ── Teleprompter ───────────────────────────────── */
 #teleprompter-bar {
-  flex-shrink: 0;
+  position: absolute;
+  top: 20px;
+  left: -12px;
+  width: calc(100% + 24px);
+  z-index: 100;
   height: var(--teleprompter-h);
   background: rgba(8,8,18,0.88);
-  border-bottom: 1px solid var(--border-dim);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
-  transition: height var(--transition-mid);
+  transition: transform var(--transition-mid), opacity var(--transition-mid), height var(--transition-mid);
+  box-shadow: var(--shadow-float);
 }
-#teleprompter-bar.collapsed { height: 0; }
+#teleprompter-bar.collapsed { transform: translateY(-100%) scaleY(0); opacity: 0; pointer-events: none; }
 #teleprompter-bar.drag-target { border-color: var(--accent); }
 
 #teleprompter-content {
@@ -466,10 +471,22 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   min-height: 0;
 }
 
+#preview-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 #preview-live, #preview-canvas, #preview-overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%; height: 100%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
@@ -487,13 +504,13 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   border-radius: var(--radius-sm);
   background: rgba(0,0,0,0.65);
   backdrop-filter: blur(4px);
-  z-index: 10;
+  z-index: 150; /* Above teleprompter */
   letter-spacing: 0.02em;
   pointer-events: none;
 }
-#hud-total-time  { top: 10px; right: 12px; color: var(--green); }
-#hud-cursor-time { top: 10px; left: 12px;  color: var(--red); }
-#hud-selection   { bottom: 10px; left: 12px; color: var(--blue); }
+#hud-total-time  { top: 10px; right: 12px; color: var(--green) !important; }
+#hud-cursor-time { top: 10px; left: 12px;  color: var(--red) !important; }
+#hud-selection   { bottom: 10px; left: 12px; color: var(--blue) !important; }
 .hud-sep { margin: 0 6px; opacity: 0.5; }
 
 #overlay-opacity-ctrl {

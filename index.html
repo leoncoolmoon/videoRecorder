@@ -98,28 +98,30 @@
     <!-- CENTER: Preview + Timeline -->
     <main id="panel-center">
 
-      <!-- TELEPROMPTER (floats above preview) -->
-      <div id="teleprompter-bar">
-        <div id="teleprompter-content">
-          <div id="teleprompter-text-wrap">
-            <div id="teleprompter-text">将台词文件拖入此处（支持 .txt / .lrc / .json）</div>
-          </div>
-          <div id="teleprompter-fade-top"></div>
-          <div id="teleprompter-fade-bottom"></div>
-        </div>
-        <div id="teleprompter-drag-handle" data-tip="拖动调整台词栏高度">
-          <svg viewBox="0 0 20 6" width="20" height="6"><path d="M2 2h16M2 4h16" stroke-width="1.2"/></svg>
-        </div>
-      </div>
-
       <!-- PREVIEW AREA -->
       <div id="preview-wrap">
-        <!-- Live camera feed -->
-        <video id="preview-live" autoplay muted playsinline></video>
-        <!-- Composite canvas (rendered by player.js) -->
-        <canvas id="preview-canvas"></canvas>
-        <!-- Cursor-position overlay canvas -->
-        <canvas id="preview-overlay" id="preview-overlay"></canvas>
+        <!-- TELEPROMPTER (floats above preview) -->
+        <div id="teleprompter-bar">
+          <div id="teleprompter-content">
+            <div id="teleprompter-text-wrap">
+              <div id="teleprompter-text">将台词文件拖入此处（支持 .txt / .lrc / .json）</div>
+            </div>
+            <div id="teleprompter-fade-top"></div>
+            <div id="teleprompter-fade-bottom"></div>
+          </div>
+          <div id="teleprompter-drag-handle" data-tip="拖动调整台词栏高度">
+            <svg viewBox="0 0 20 6" width="20" height="6"><path d="M2 2h16M2 4h16" stroke-width="1.2"/></svg>
+          </div>
+        </div>
+
+        <div id="preview-viewport">
+          <!-- Live camera feed -->
+          <video id="preview-live" autoplay muted playsinline></video>
+          <!-- Composite canvas (rendered by player.js) -->
+          <canvas id="preview-canvas"></canvas>
+          <!-- Cursor-position overlay canvas -->
+          <canvas id="preview-overlay"></canvas>
+        </div>
 
         <!-- Overlay: total time (top-right, green) -->
         <div id="hud-total-time" class="hud-label hud-green">00:00:00.00</div>
