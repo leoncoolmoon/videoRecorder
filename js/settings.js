@@ -194,15 +194,66 @@ const Settings = (() => {
     return sel;
   }
 
-  function _color(key, onChange) {
+  function _color(key, onChange, showAlpha = false) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:6px;flex:1';
+
     const inp = document.createElement('input');
     inp.type  = 'color';
-    inp.value = State.getSetting(key) || '#ffffff';
+    const curVal = State.getSetting(key) || '#ffffff';
+    // If it's rgba, we need to extract hex for the color picker
+    inp.value = curVal.startsWith('rgba') ? _rgbaToHex(curVal) : curVal;
+
     inp.addEventListener('input', () => {
-      State.setSetting(key, inp.value);
-      if (onChange) onChange(inp.value);
+      const alphaKey = key + 'Alpha';
+      const alpha = showAlpha ? (State.getSetting(alphaKey) ?? 1) : 1;
+      const finalColor = alpha < 1 ? _hexToRgba(inp.value, alpha) : inp.value;
+      State.setSetting(key, finalColor);
+      if (onChange) onChange(finalColor);
     });
-    return inp;
+
+    wrap.appendChild(inp);
+
+    if (showAlpha) {
+      const alphaKey = key + 'Alpha';
+      const initialAlpha = _getAlphaFromRgba(curVal) ?? State.getSetting(alphaKey) ?? 1;
+      const slider = _slider(alphaKey, 0, 1, 0.05, '', (v) => {
+        const finalColor = v < 1 ? _hexToRgba(inp.value, v) : inp.value;
+        State.setSetting(key, finalColor);
+        if (onChange) onChange(finalColor);
+      });
+      slider.style.flex = '1';
+      // Initialize slider value correctly
+      const sliderInp = slider.querySelector('input');
+      if (sliderInp) sliderInp.value = initialAlpha;
+      const sliderVal = slider.querySelector('.setting-val');
+      if (sliderVal) sliderVal.textContent = initialAlpha;
+
+      wrap.appendChild(slider);
+    }
+
+    return wrap;
+  }
+
+  function _rgbaToHex(rgba) {
+    const m = rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
+    if (!m) return '#ffffff';
+    const r = parseInt(m[1]).toString(16).padStart(2, '0');
+    const g = parseInt(m[2]).toString(16).padStart(2, '0');
+    const b = parseInt(m[3]).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  }
+
+  function _hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function _getAlphaFromRgba(rgba) {
+    const m = rgba.match(/rgba?\(.*,\s*([\d.]+)\)$/);
+    return m ? parseFloat(m[1]) : null;
   }
 
   function _btn(label, svgPath, cls, onClick) {
@@ -270,9 +321,9 @@ const Settings = (() => {
     _row(s1, t('font_size'),
       _slider('teleprompterFontSize', 10, 36, 1, 'px', v => Teleprompter.setFontSize(v)));
     _row(s1, t('bg_color'),
-      _color('teleprompterBg', v => Teleprompter.setBg(v)));
+      _color('teleprompterBg', v => Teleprompter.setBg(v), true));
     _row(s1, t('font_color'),
-      _color('teleprompterFontColor', v => Teleprompter.setFontColor(v)));
+      _color('teleprompterFontColor', v => Teleprompter.setFontColor(v), true));
     _row(s1, t('align'),
       _select('teleprompterAlign',
         [['left', t('align_left')], ['center', t('align_center')], ['right', t('align_right')]],

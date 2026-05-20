@@ -153,13 +153,29 @@ input  { font-family: var(--font-ui); color: inherit; }
 
 #workspace {
   display: grid;
-  grid-template-columns: var(--assets-w) 4px minmax(33.3%, 1fr) 4px var(--settings-w);
+  grid-template-columns: var(--assets-w, 28%) 4px 1fr 4px var(--settings-w, 28%);
+  grid-template-areas: "assets h-assets center h-settings settings";
   overflow: hidden;
   min-height: 0;
 }
 
-#workspace:has(#panel-assets.collapsed) { --assets-w: 32px !important; }
-#workspace:has(#panel-settings.collapsed) { --settings-w: 32px !important; }
+#workspace:has(#panel-assets.collapsed) {
+  --assets-w: 32px !important;
+  grid-template-columns: 32px 0px 1fr 4px var(--settings-w, 28%);
+}
+#workspace:has(#panel-settings.collapsed) {
+  --settings-w: 32px !important;
+  grid-template-columns: var(--assets-w, 28%) 4px 1fr 0px 32px;
+}
+#workspace:has(#panel-assets.collapsed):has(#panel-settings.collapsed) {
+  grid-template-columns: 32px 0px 1fr 0px 32px;
+}
+
+#panel-assets   { grid-area: assets; }
+#rh-assets      { grid-area: h-assets; }
+#panel-center   { grid-area: center; }
+#rh-settings    { grid-area: h-settings; }
+#panel-settings { grid-area: settings; }
 
 #workspace:has(#panel-assets.collapsed) #rh-assets { display: none; }
 #workspace:has(#panel-settings.collapsed) #rh-settings { display: none; }
@@ -167,7 +183,7 @@ input  { font-family: var(--font-ui); color: inherit; }
 /* ── Top Bar ────────────────────────────────────── */
 #topbar {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   padding: 0 12px;
   background: var(--bg-panel);
@@ -178,7 +194,7 @@ input  { font-family: var(--font-ui); color: inherit; }
 }
 
 #topbar-left { display: flex; align-items: center; gap: 10px; }
-#topbar-center { display: flex; align-items: center; gap: 2px; }
+#topbar-center { display: none; }
 #topbar-right { display: flex; align-items: center; gap: 2px; justify-content: flex-end; }
 
 #app-logo {
@@ -344,7 +360,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 }
 
 /* ── LEFT PANEL: Assets ─────────────────────────── */
-#panel-assets { width: 100%; flex-shrink: 0; }
+#panel-assets { width: 100%; min-width: 0; flex-shrink: 0; }
 
 #asset-zoom-bar {
   display: flex;
@@ -439,12 +455,12 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 /* ── Teleprompter ───────────────────────────────── */
 #teleprompter-bar {
   position: absolute;
-  top: 20px;
+  top: 0;
   left: -12px;
   width: calc(100% + 24px);
   z-index: 100;
   height: var(--teleprompter-h);
-  background: rgba(8,8,18,0.7); /* 70% opacity default */
+  background: rgba(8, 8, 18, 0.7); /* 70% opacity default */
   border: 1px solid var(--border-hi);
   border-radius: var(--radius-md);
   display: flex;
@@ -536,13 +552,29 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 #preview-wrap {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Allow teleprompter negative margins */
   background: var(--preview-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 0;
 }
+
+/* ── Preview Toolbar ────────────────────────────── */
+#preview-toolbar {
+  height: 40px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-dim);
+  border-bottom: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.pt-group { display: flex; align-items: center; gap: 4px; }
+.pt-sep { width: 1px; height: 20px; background: var(--border-mid); margin: 0 4px; }
 
 #preview-viewport {
   position: relative;
@@ -950,6 +982,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 /* ── RIGHT PANEL: Settings ──────────────────────── */
 #panel-settings {
   width: 100%;
+  min-width: 0;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -1297,7 +1330,7 @@ body.is-playing #btn-play { color: var(--accent); background: var(--accent-dim);
 
 /* Timeline inner: ruler on top, tracks below */
 #timeline-scroll-wrap {
-  overflow: auto;
+  overflow: hidden; /* Hide native scrollbar, use custom one */
   display: flex;
   flex-direction: column;
 }

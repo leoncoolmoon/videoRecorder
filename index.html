@@ -22,31 +22,7 @@
       <span id="project-name" contenteditable="true" spellcheck="false">未命名项目</span>
     </div>
     <div id="topbar-center">
-      <!-- Recording transport controls -->
-      <button class="tb-btn" id="btn-rec-toggle" data-tip="录制 / 暂停  (Enter)">
-        <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" class="rec-dot-icon"/></svg>
-      </button>
-      <button class="tb-btn" id="btn-stop" data-tip="停止录制">
-        <svg viewBox="0 0 20 20"><rect x="4" y="4" width="12" height="12" rx="2"/></svg>
-      </button>
-      <div class="tb-sep"></div>
-      <button class="tb-btn" id="btn-play" data-tip="播放预览  (P)">
-        <svg viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z"/></svg>
-      </button>
-      <button class="tb-btn" id="btn-rewind" data-tip="跳到开始  (Home)">
-        <svg viewBox="0 0 20 20"><path d="M5 4v12M7 10l8-5v10z"/></svg>
-      </button>
-      <div class="tb-sep"></div>
-      <button class="tb-btn toggle-btn" id="btn-mode-insert" data-tip="插入模式  (默认)" data-active="true">
-        <svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke-width="2"/></svg>
-      </button>
-      <button class="tb-btn toggle-btn" id="btn-mode-overwrite" data-tip="覆盖模式  (Insert+Space)">
-        <svg viewBox="0 0 20 20"><rect x="3" y="8" width="14" height="4" rx="1"/><path d="M10 3v4M10 13v4" stroke-width="1.5"/></svg>
-      </button>
-      <div class="tb-sep"></div>
-      <button class="tb-btn" id="btn-add-tag" data-tip="添加标签  (Space)">
-        <svg viewBox="0 0 20 20"><path d="M3 10h14M10 3l4 7-4 7"/></svg>
-      </button>
+      <!-- Center area empty or for dynamic status info -->
     </div>
     <div id="topbar-right">
       <button class="tb-btn" id="btn-save" data-tip="保存项目  (Ctrl+S)">
@@ -143,6 +119,40 @@
         <div id="rec-badge" style="display:none">
           <span class="rec-pulse"></span>REC
         </div>
+      </div>
+
+      <!-- PREVIEW TOOLBAR -->
+      <div id="preview-toolbar">
+        <div class="pt-group">
+          <button class="tb-btn" id="btn-rec-toggle" data-tip="录制 / 暂停  (Enter)">
+            <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" class="rec-dot-icon"/></svg>
+          </button>
+          <button class="tb-btn" id="btn-stop" data-tip="停止录制">
+            <svg viewBox="0 0 20 20"><rect x="4" y="4" width="12" height="12" rx="2"/></svg>
+          </button>
+        </div>
+        <div class="pt-sep"></div>
+        <div class="pt-group">
+          <button class="tb-btn" id="btn-play" data-tip="播放预览  (P)">
+            <svg viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z"/></svg>
+          </button>
+          <button class="tb-btn" id="btn-rewind" data-tip="跳到开始  (Home)">
+            <svg viewBox="0 0 20 20"><path d="M5 4v12M7 10l8-5v10z"/></svg>
+          </button>
+        </div>
+        <div class="pt-sep"></div>
+        <div class="pt-group">
+          <button class="tb-btn toggle-btn" id="btn-mode-insert" data-tip="插入模式  (默认)" data-active="true">
+            <svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke-width="2"/></svg>
+          </button>
+          <button class="tb-btn toggle-btn" id="btn-mode-overwrite" data-tip="覆盖模式  (Insert+Space)">
+            <svg viewBox="0 0 20 20"><rect x="3" y="8" width="14" height="4" rx="1"/><path d="M10 3v4M10 13v4" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+        <div class="pt-sep"></div>
+        <button class="tb-btn" id="btn-add-tag" data-tip="添加标签  (Space)">
+          <svg viewBox="0 0 20 20"><path d="M3 10h14M10 3l4 7-4 7"/></svg>
+        </button>
       </div>
 
       <!-- TIMELINE AREA -->
