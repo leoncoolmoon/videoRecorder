@@ -105,12 +105,15 @@ const UI = (() => {
       document.addEventListener('mousemove', e => {
         if (!handle.classList.contains('dragging')) return;
         const dx = e.clientX - startX;
-        const newW = Math.max(100, Math.min(400, startW + (isLeft ? dx : -dx)));
-        panel.style.width = newW + 'px';
+        // Allow panels to take between 150px and 45% of window width
+        const maxW = window.innerWidth * 0.45;
+        const minW = 150;
+        const newW = Math.max(minW, Math.min(maxW, startW + (isLeft ? dx : -dx)));
+
         if (panel.id === 'panel-assets') {
-          document.documentElement.style.setProperty('--asset-panel-w', newW + 'px');
+          document.documentElement.style.setProperty('--assets-w', newW + 'px');
         } else {
-          document.documentElement.style.setProperty('--settings-panel-w', newW + 'px');
+          document.documentElement.style.setProperty('--settings-w', newW + 'px');
         }
       });
 
@@ -127,20 +130,27 @@ const UI = (() => {
 
   // ── Panel collapse ─────────────────────────────
   function initPanelCollapse() {
-    document.querySelectorAll('.panel-collapse-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.dataset.target;
-        const panel = document.getElementById(targetId);
+    document.querySelectorAll('.panel-titlebar').forEach(bar => {
+      bar.addEventListener('click', (e) => {
+        const panel = bar.closest('.panel');
         if (!panel) return;
+
+        const btn = bar.querySelector('.panel-collapse-btn');
+        const isCollapsed = panel.classList.contains('collapsed');
+
+        // If not collapsed, only allow clicking the actual button to collapse
+        if (!isCollapsed && !e.target.closest('.panel-collapse-btn')) return;
+
         panel.classList.toggle('collapsed');
-        // Flip chevron
-        const svg = btn.querySelector('svg path');
+        const nowCollapsed = panel.classList.contains('collapsed');
+
+        // Flip chevron icon
+        const svg = btn?.querySelector('svg path');
         if (svg) {
-          const isCollapsed = panel.classList.contains('collapsed');
-          if (targetId === 'panel-assets') {
-            svg.setAttribute('d', isCollapsed ? 'M6 4l4 4-4 4' : 'M10 4l-4 4 4 4');
+          if (panel.id === 'panel-assets') {
+            svg.setAttribute('d', nowCollapsed ? 'M6 4l4 4-4 4' : 'M10 4l-4 4 4 4');
           } else {
-            svg.setAttribute('d', isCollapsed ? 'M10 4l-4 4 4 4' : 'M6 4l4 4-4 4');
+            svg.setAttribute('d', nowCollapsed ? 'M10 4l-4 4 4 4' : 'M6 4l4 4-4 4');
           }
         }
       });
