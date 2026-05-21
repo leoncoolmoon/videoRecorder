@@ -27,8 +27,9 @@ const State = (() => {
   // ── Default settings ───────────────────────────
   const defaultSettings = () => ({
     // System
-    language: 'zh',
+    language: (navigator.language || 'zh').startsWith('en') ? 'en' : 'zh',
     theme: 'dark',
+    uiFontSize: 13,
 
     // Recording
     resolution: '1920x1080',
@@ -39,9 +40,11 @@ const State = (() => {
     // Teleprompter
     teleprompterVisible: true,
     teleprompterCollapseOnPause: false,
-    teleprompterOpacity: 0.88,
-    teleprompterBg: '#080812',
-    teleprompterFontColor: '#d4d4e8',
+    teleprompterOpacity: 1.0,
+    teleprompterBg: 'rgba(8, 8, 18, 0.7)',
+    teleprompterBgAlpha: 0.7,
+    teleprompterFontColor: '#ffffff',
+    teleprompterFontColorAlpha: 1.0,
     teleprompterFontSize: 14,
     teleprompterAlign: 'left',
     teleprompterWithExport: false,

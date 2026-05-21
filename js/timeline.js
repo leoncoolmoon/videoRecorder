@@ -9,17 +9,17 @@ const Timeline = (() => {
   let _inner       = null;
   let _rulerMarks  = null;
   let _tracks      = null;
+  let _labelsCol   = null;
   let _playheadEl  = null;
   let _selectionEl = null;
 
-  const LABEL_W  = 72;   // px, track label width (matches CSS --tl-label-w)
-  const ROW_H    = 54;   // px, video/image row height
+  const ROW_H    = 52;   // px, video/image row height (matches CSS)
   const AUDIO_H  = 36;   // px, audio row height
   const MIN_ZOOM = 10;
   const MAX_ZOOM = 800;
 
   // ── Thumbnail cache ───────────────────────────────
-  const _thumbCache   = {};   // `${layerId}_${timecode}` → dataURL
+  const _thumbCache   = {};   // ${layerId}_${timecode} → dataURL
   let   _thumbObserver = null;
 
   // ── Context menu ─────────────────────────────────
@@ -43,6 +43,7 @@ const Timeline = (() => {
     _inner       = document.getElementById('timeline-inner');
     _rulerMarks  = document.getElementById('tl-ruler-marks');
     _tracks      = document.getElementById('tl-tracks');
+    _labelsCol   = document.getElementById('tl-tracks-labels');
     _playheadEl  = document.getElementById('tl-playhead');
     _selectionEl = document.getElementById('tl-selection');
 
@@ -74,7 +75,7 @@ const Timeline = (() => {
     const duration = Math.max(State.get('totalDuration') || 0, 30);
     const totalPx  = Math.round(duration * zoom) + 400;
 
-    _inner.style.width = (totalPx + LABEL_W) + 'px';
+    _inner.style.width = totalPx + 'px';
 
     _renderRuler(zoom, duration);
     _renderAllTracks(zoom);
@@ -117,52 +118,50 @@ const Timeline = (() => {
 
   // ── All track rows ─────────────────────────────
   function _renderAllTracks(zoom) {
-    if (!_tracks) return;
+    if (!_tracks || !_labelsCol) return;
     _tracks.innerHTML = '';
+    _labelsCol.innerHTML = '';
 
     const layers  = Layers.getAll();
     const usedIdx = [...new Set(layers.map(l => l.trackIndex))].sort((a,b)=>a-b);
     if (!usedIdx.includes(0)) usedIdx.unshift(0);
-    // Always one empty row at end
     const maxIdx = usedIdx.length ? usedIdx[usedIdx.length-1] : -1;
     usedIdx.push(maxIdx + 1);
 
     for (const idx of usedIdx) {
       const rowLayers = layers.filter(l => l.trackIndex === idx);
       const isAudio   = rowLayers.length > 0 && rowLayers.every(l => l.type === 'audio');
-      _tracks.appendChild(_makeRow(idx, rowLayers, isAudio, zoom));
+
+      const { row, label } = _makeRow(idx, rowLayers, isAudio, zoom);
+      _tracks.appendChild(row);
+      _labelsCol.appendChild(label);
     }
 
     requestAnimationFrame(() => _observeThumbs());
   }
 
   function _makeRow(trackIndex, rowLayers, isAudio, zoom) {
+    const h = (isAudio ? AUDIO_H : ROW_H);
+
     const row = document.createElement('div');
     row.className = 'tl-row' + (isAudio ? ' audio-row' : '');
     row.dataset.trackIndex = trackIndex;
-    row.style.height = (isAudio ? AUDIO_H : ROW_H) + 'px';
+    row.style.height = h + 'px';
 
-    // Label
     const label = document.createElement('div');
-    label.className = 'tl-row-label';
+    label.className = 'tl-row-label' + (isAudio ? ' audio-row-label' : '');
+    const t = Settings.t;
     if (isAudio) {
-      label.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 2v12M5 4v8M11 4v8M2 6v4M14 6v4"/></svg><span>音频</span>';
+      label.innerHTML = `<svg viewBox="0 0 16 16"><path d="M8 2v12M5 4v8M11 4v8M2 6v4M14 6v4"/></svg><span>${t('label_audio')}</span>`;
     } else {
-      label.innerHTML = `<svg viewBox="0 0 16 16"><rect x="1" y="3" width="10" height="10" rx="1"/><path d="M11 6l4-2v8l-4-2"/></svg><span>轨道${trackIndex}</span>`;
+      label.innerHTML = `<svg viewBox="0 0 16 16"><rect x="1" y="3" width="10" height="10" rx="1"/><path d="M11 6l4-2v8l-4-2"/></svg><span>${t('label_track')} ${trackIndex}</span>`;
     }
-    row.appendChild(label);
 
-    // Content
-    const content = document.createElement('div');
-    content.className = 'tl-row-content';
-    content.dataset.trackIndex = trackIndex;
-
-    // Accept drag-drop from asset panel
-    content.addEventListener('dragover',  e => { e.preventDefault(); content.classList.add('drop-active'); });
-    content.addEventListener('dragleave', () => content.classList.remove('drop-active'));
-    content.addEventListener('drop', e => {
+    row.addEventListener('dragover',  e => { e.preventDefault(); row.classList.add('drop-active'); });
+    row.addEventListener('dragleave', () => row.classList.remove('drop-active'));
+    row.addEventListener('drop', e => {
       e.preventDefault();
-      content.classList.remove('drop-active');
+      row.classList.remove('drop-active');
       const layerId = e.dataTransfer.getData('text/plain');
       if (!layerId) return;
       const layer = Layers.getById(layerId);
@@ -177,10 +176,9 @@ const Timeline = (() => {
     });
 
     for (const layer of rowLayers) {
-      content.appendChild(_makeClip(layer, zoom, isAudio));
+      row.appendChild(_makeClip(layer, zoom, isAudio));
     }
-    row.appendChild(content);
-    return row;
+    return { row, label };
   }
 
   // ── Single clip element ─────────────────────────
@@ -198,13 +196,11 @@ const Timeline = (() => {
     clip.style.left  = leftPx + 'px';
     clip.style.width = widthPx + 'px';
 
-    // Label
     const lbl = document.createElement('div');
     lbl.className = 'tl-clip-label';
     lbl.textContent = layer.name;
     clip.appendChild(lbl);
 
-    // Body
     if (isAudio) {
       const waveWrap = document.createElement('div');
       waveWrap.style.cssText = 'position:absolute;inset:0;top:14px;overflow:hidden';
@@ -225,7 +221,6 @@ const Timeline = (() => {
       clip.appendChild(thumbRow);
     }
 
-    // Resize handles
     const hL = document.createElement('div');
     hL.className = 'tl-clip-handle left';
     const hR = document.createElement('div');
@@ -233,7 +228,6 @@ const Timeline = (() => {
     clip.appendChild(hL);
     clip.appendChild(hR);
 
-    // Events
     clip.addEventListener('mousedown', e => {
       if (e.button !== 0) return;
       _startClipDrag(e, layer, 'move');
@@ -275,7 +269,6 @@ const Timeline = (() => {
     </svg>`;
   }
 
-  // ── Tags ──────────────────────────────────────
   function _renderTags() {
     if (!_inner) return;
     _inner.querySelectorAll('.tl-tag').forEach(el => el.remove());
@@ -285,7 +278,7 @@ const Timeline = (() => {
       const el = document.createElement('div');
       el.className    = 'tl-tag';
       el.dataset.tagId = tag.id;
-      el.style.left       = (LABEL_W + tag.time * zoom) + 'px';
+      el.style.left       = (tag.time * zoom) + 'px';
       el.style.background = tag.color || 'var(--tag-color)';
       el.style.setProperty('--tag-c', tag.color || 'var(--tag-color)');
 
@@ -333,18 +326,17 @@ const Timeline = (() => {
       };
       const onUp = () => {
         document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        document.removeEventListener('mouseup',   onUp);
       };
       document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      document.addEventListener('mouseup',   onUp);
     });
   }
 
-  // ── Playhead / Selection ──────────────────────
   function _updatePlayhead(time) {
     if (!_playheadEl) return;
-    const px = LABEL_W + time * State.get('zoomLevel');
-    _playheadEl.style.transform = `translateX(${px - 1}px)`;
+    const px = time * State.get('zoomLevel');
+    _playheadEl.style.transform = `translateX(${px}px)`;
     _autoScroll(px);
   }
 
@@ -352,7 +344,7 @@ const Timeline = (() => {
     if (!_selectionEl) return;
     if (!sel) { _selectionEl.style.display = 'none'; return; }
     const zoom  = State.get('zoomLevel');
-    const left  = LABEL_W + sel.startTime * zoom;
+    const left  = sel.startTime * zoom;
     const width = Math.max(2, (sel.endTime - sel.startTime) * zoom);
     _selectionEl.style.display = 'block';
     _selectionEl.style.left    = left + 'px';
@@ -369,9 +361,6 @@ const Timeline = (() => {
     }
   }
 
-  // ════════════════════════════════════════════════
-  // CLIP DRAG
-  // ════════════════════════════════════════════════
   function _startClipDrag(e, layer, type) {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -417,7 +406,6 @@ const Timeline = (() => {
         timelineEnd:   newStart + dur,
         trackIndex:    newTrack,
       });
-      // Fast visual update without full re-render
       const clipEl = _tracks?.querySelector(`[data-layer-id="${_drag.layerId}"]`);
       if (clipEl) {
         clipEl.style.left = (newStart * zoom) + 'px';
@@ -455,19 +443,24 @@ const Timeline = (() => {
     return all.length ? Math.max(...all.map(l => l.trackIndex)) + 1 : 0;
   }
 
-  // ════════════════════════════════════════════════
-  // PLAYHEAD DRAG
-  // ════════════════════════════════════════════════
   function _initPlayheadDrag() {
     const head = document.getElementById('tl-playhead-head');
     if (!head) return;
     head.addEventListener('mousedown', e => {
       if (e.button !== 0) return;
       e.preventDefault();
+      e.stopPropagation();
+
+      const rect = head.getBoundingClientRect();
+      const offset = e.clientX - (rect.left + rect.width / 2);
+
       document.body.style.cursor = 'ew-resize';
       const onMove = e2 => {
-        const t = _clientXToTime(e2.clientX);
-        if (t !== null) { State.set('playhead', t); State.emit('player:seek', t); }
+        const t = _clientXToTime(e2.clientX - offset);
+        if (t !== null) {
+          State.set('playhead', t);
+          State.emit('player:seek', t);
+        }
       };
       const onUp = () => {
         document.body.style.cursor = '';
@@ -479,19 +472,15 @@ const Timeline = (() => {
     });
   }
 
-  // ════════════════════════════════════════════════
-  // TRACK AREA: click to set playhead, drag to select
-  // ════════════════════════════════════════════════
   function _initTrackAreaEvents() {
     if (!_tracks) return;
-    _tracks.addEventListener('mousedown', e => {
+    _inner.addEventListener('mousedown', e => {
       if (e.button !== 0) return;
       if (e.target.closest('.tl-clip') || e.target.closest('.tl-tag')) return;
       const t = _clientXToTime(e.clientX);
       if (t === null) return;
 
       if (e.shiftKey) {
-        // extend selection toward click point
         const cur = State.get('playhead');
         const start = Math.min(cur, t);
         const end   = Math.max(cur, t);
@@ -499,7 +488,6 @@ const Timeline = (() => {
         return;
       }
 
-      // Move playhead and start selection drag
       Tags.clearSelection();
       State.set('playhead', t);
       State.emit('player:seek', t);
@@ -523,9 +511,6 @@ const Timeline = (() => {
     });
   }
 
-  // ════════════════════════════════════════════════
-  // WHEEL ZOOM (Ctrl/Cmd + scroll)
-  // ════════════════════════════════════════════════
   function _initWheelZoom() {
     const wrap = document.getElementById('timeline-wrap');
     if (!wrap) return;
@@ -540,9 +525,6 @@ const Timeline = (() => {
     }, { passive: false });
   }
 
-  // ════════════════════════════════════════════════
-  // THUMBNAIL LAZY LOAD
-  // ════════════════════════════════════════════════
   function _initThumbObserver() {
     _thumbObserver = new IntersectionObserver(entries => {
       for (const entry of entries) {
@@ -578,9 +560,6 @@ const Timeline = (() => {
     el.appendChild(img);
   }
 
-  // ════════════════════════════════════════════════
-  // SCROLLBAR
-  // ════════════════════════════════════════════════
   function _initScrollbar() {
     const thumb = document.getElementById('tl-scrollbar-thumb');
     const track = document.getElementById('tl-scrollbar-track');
@@ -618,9 +597,6 @@ const Timeline = (() => {
     thumb.style.left  = (tw * (_scrollWrap.scrollLeft / iw)) + 'px';
   }
 
-  // ════════════════════════════════════════════════
-  // CONTEXT MENUS
-  // ════════════════════════════════════════════════
   function _removeCtxMenu() { _ctxMenu?.remove(); _ctxMenu = null; }
 
   function _showClipMenu(e, layer) {
@@ -688,7 +664,6 @@ const Timeline = (() => {
       menu.appendChild(row);
     }
 
-    // Clamp to viewport
     requestAnimationFrame(() => {
       const r = menu.getBoundingClientRect();
       if (r.right  > window.innerWidth)  menu.style.left = (x - r.width)  + 'px';
@@ -701,11 +676,11 @@ const Timeline = (() => {
   // PUBLIC UTILS
   // ════════════════════════════════════════════════
   function _clientXToTime(clientX) {
-    if (!_tracks) return null;
-    const rect   = _tracks.getBoundingClientRect();
-    const scroll = _scrollWrap?.scrollLeft ?? 0;
+    if (!_inner) return null;
+    const rect   = _inner.getBoundingClientRect();
     const zoom   = State.get('zoomLevel');
-    return Math.max(0, (clientX - rect.left + scroll - LABEL_W) / zoom);
+    const time   = (clientX - rect.left + scroll) / zoom;
+    return Math.max(0, time);
   }
 
   function setZoom(pxPerSec) {
@@ -714,11 +689,11 @@ const Timeline = (() => {
 
   function scrollTo(time) {
     if (!_scrollWrap) return;
-    _scrollWrap.scrollLeft = LABEL_W + time * State.get('zoomLevel') - _scrollWrap.offsetWidth * 0.3;
+    _scrollWrap.scrollLeft = time * State.get('zoomLevel') - _scrollWrap.offsetWidth * 0.3;
   }
 
-  function pixelToTime(px) { return Math.max(0, (px - LABEL_W) / State.get('zoomLevel')); }
-  function timeToPixel(t)  { return LABEL_W + t * State.get('zoomLevel'); }
+  function pixelToTime(px) { return Math.max(0, px / State.get('zoomLevel')); }
+  function timeToPixel(t)  { return t * State.get('zoomLevel'); }
 
   return { init, render, setZoom, scrollTo, pixelToTime, timeToPixel };
 })();
