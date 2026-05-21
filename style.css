@@ -686,6 +686,34 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 .tl-label { font-size: 10px; color: var(--text-tertiary); margin-left: 4px; }
 .tl-val { font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); min-width: 24px; }
 
+/* Timeline Layout */
+#timeline-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#tl-labels-col {
+  width: var(--tl-label-w);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-dim);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 25;
+}
+
+#tl-ruler-label {
+  height: var(--tl-ruler-h);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+#tl-tracks-labels {
+  flex: 1;
+  overflow-y: hidden; /* Synced with tracks */
+}
+
 /* Timeline scroll container */
 #timeline-scroll-wrap {
   flex: 1;
@@ -696,30 +724,20 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 #timeline-inner {
   position: relative;
   height: 100%;
-  min-width: 100%;
   /* width set dynamically by timeline.js */
 }
 
 /* Ruler */
 #tl-ruler {
-  display: flex;
   height: var(--tl-ruler-h);
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-dim);
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 20;
-  overflow: hidden;
-}
-#tl-ruler-track-labels {
-  width: var(--tl-label-w);
-  flex-shrink: 0;
-  border-right: 1px solid var(--border-dim);
 }
 #tl-ruler-marks {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
+  position: absolute;
+  inset: 0;
 }
 .tl-ruler-mark {
   position: absolute;
@@ -748,24 +766,20 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 
 /* Tracks */
 #tl-tracks {
-  position: absolute;
-  top: var(--tl-ruler-h);
-  left: 0; right: 0; bottom: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  position: relative;
+  overflow: visible;
 }
 
 .tl-row {
-  display: flex;
   height: 52px;
   border-bottom: 1px solid var(--border-dim);
   position: relative;
+  background: var(--track-bg);
 }
 .tl-row.audio-row { height: 36px; }
 
 .tl-row-label {
-  width: var(--tl-label-w);
-  flex-shrink: 0;
+  height: 52px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -774,22 +788,13 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   font-size: 9px;
   color: var(--text-tertiary);
   background: var(--bg-surface);
-  border-right: 1px solid var(--border-dim);
-  position: sticky;
-  left: 0;
-  z-index: 5;
+  border-bottom: 1px solid var(--border-dim);
   cursor: pointer;
   transition: background var(--transition-fast);
 }
+.tl-row-label.audio-row-label { height: 36px; }
 .tl-row-label:hover { background: var(--bg-hover); color: var(--text-secondary); }
 .tl-row-label svg { width: 12px; height: 12px; }
-
-.tl-row-content {
-  flex: 1;
-  position: relative;
-  background: var(--track-bg);
-  overflow: hidden;
-}
 
 /* Clips */
 .tl-clip {
@@ -897,12 +902,11 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 #tl-playhead {
   position: absolute;
   top: 0; bottom: 0;
-  left: var(--tl-label-w);
+  left: 0;
   width: 2px;
-  background: var(--rec-color);
+  background: var(--red);
   z-index: 30;
   pointer-events: none;
-  transform: translateX(-1px);
   will-change: transform;
 }
 #tl-playhead-head {
