@@ -591,7 +591,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   overflow: hidden;
 }
 
-#preview-live, #preview-canvas, #preview-overlay {
+#preview-live, #preview-overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
@@ -599,9 +599,8 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   object-fit: contain;
 }
 
-#preview-live   { z-index: 1; }
-#preview-canvas { z-index: 2; }
-#preview-overlay { z-index: 3; pointer-events: none; }
+#preview-live    { z-index: 1; }
+#preview-overlay { z-index: 2; pointer-events: none; }
 
 /* HUD labels */
 .hud-label {

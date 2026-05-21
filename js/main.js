@@ -12,7 +12,7 @@
   Timeline.init();
 
   // 3. Player (composite preview canvas)
-  Player.init(document.getElementById('preview-canvas'));
+  Player.init(document.getElementById('preview-overlay'));
 
   // 4. Teleprompter
   Teleprompter.init(document.getElementById('teleprompter-bar'));
