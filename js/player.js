@@ -156,18 +156,17 @@ const Player = (() => {
     const isCompare   = State.getSetting('playbackCompareMode');
     const isIdle      = !isPlaying && !isRecording;
 
-    // Composite canvas during play
-    // If compare mode is on, we make it semi-transparent so live feed underneath shows through
-    _canvas.style.opacity = isPlaying ? (isCompare ? 0.6 : 1) : 0;
+    // Main composite canvas only if playing AND NOT in compare mode
+    _canvas.style.opacity = (isPlaying && !isCompare) ? 1 : 0;
 
-    // Live feed during record, idle, or play-compare
+    // Live feed during record, idle, or playback-compare
     const live = document.getElementById('preview-live');
     if (live) {
       live.style.opacity = (isRecording || isIdle || (isPlaying && isCompare)) ? 1 : 0;
     }
 
-    // Ghost overlay only during idle
-    _overlay.style.opacity = isIdle ? _overlayOpacity : 0;
+    // Overlay canvas during idle OR playback-compare
+    _overlay.style.opacity = isIdle ? _overlayOpacity : (isPlaying && isCompare ? _overlayOpacity : 0);
   }
 
   function _loop() {
@@ -179,14 +178,16 @@ const Player = (() => {
     const stopAt = (_selEnd !== null) ? _selEnd : total;
     if (stopAt > 0 && time >= stopAt) {
       State.set('playhead', stopAt);
-      _renderFrame(stopAt);
+      if (State.getSetting('playbackCompareMode')) _renderOverlay(stopAt);
+      else _renderFrame(stopAt);
       pause();
       State.emit('player:ended', {});
       return;
     }
 
     State.set('playhead', time);
-    _renderFrame(time);
+    if (State.getSetting('playbackCompareMode')) _renderOverlay(time);
+    else _renderFrame(time);
     _rafId = requestAnimationFrame(() => _loop());
   }
 
@@ -223,9 +224,6 @@ const Player = (() => {
     if (!_octx || !_overlay) return;
     const w = _overlay.width, h = _overlay.height;
     _octx.clearRect(0, 0, w, h);
-
-    const isIdle = !State.get('isPlaying') && !State.get('isRecording');
-    _overlay.style.opacity = isIdle ? _overlayOpacity : 0;
 
     _octx.save();
     const layers = _getActiveLayers(time);
