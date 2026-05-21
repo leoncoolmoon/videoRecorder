@@ -60,6 +60,7 @@ const Player = (() => {
 
     State.on('state:change:isPlaying',   () => _updatePauseOpacity());
     State.on('state:change:isRecording', () => _updatePauseOpacity());
+    State.on('settings:change:playbackCompareMode', () => _updatePauseOpacity());
 
     _updatePauseOpacity();
     console.info('[Player] Initialized.');
@@ -152,14 +153,18 @@ const Player = (() => {
     if (!_canvas || !_overlay) return;
     const isPlaying   = State.get('isPlaying');
     const isRecording = State.get('isRecording');
+    const isCompare   = State.getSetting('playbackCompareMode');
     const isIdle      = !isPlaying && !isRecording;
 
-    // Composite canvas only during play
-    _canvas.style.opacity = isPlaying ? 1 : 0;
+    // Composite canvas during play
+    // If compare mode is on, we make it semi-transparent so live feed underneath shows through
+    _canvas.style.opacity = isPlaying ? (isCompare ? 0.6 : 1) : 0;
 
-    // Live feed during record or idle
+    // Live feed during record, idle, or play-compare
     const live = document.getElementById('preview-live');
-    if (live) live.style.opacity = (isRecording || isIdle) ? 1 : 0;
+    if (live) {
+      live.style.opacity = (isRecording || isIdle || (isPlaying && isCompare)) ? 1 : 0;
+    }
 
     // Ghost overlay only during idle
     _overlay.style.opacity = isIdle ? _overlayOpacity : 0;

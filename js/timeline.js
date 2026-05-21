@@ -247,8 +247,11 @@ const Timeline = (() => {
     });
     clip.addEventListener('click', e => {
       if (_drag.didDrag) return;
-      State.set('playhead', layer.timelineStart);
-      State.emit('player:seek', layer.timelineStart);
+      const t = _clientXToTime(e.clientX);
+      if (t !== null) {
+        State.set('playhead', t);
+        State.emit('player:seek', t);
+      }
     });
 
     return clip;
@@ -676,10 +679,10 @@ const Timeline = (() => {
   // PUBLIC UTILS
   // ════════════════════════════════════════════════
   function _clientXToTime(clientX) {
-    if (!_inner) return null;
+    if (!_inner || !_scrollWrap) return null;
     const rect   = _inner.getBoundingClientRect();
     const zoom   = State.get('zoomLevel');
-    const time   = (clientX - rect.left + scroll) / zoom;
+    const time   = (clientX - rect.left + _scrollWrap.scrollLeft) / zoom;
     return Math.max(0, time);
   }
 

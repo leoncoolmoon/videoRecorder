@@ -458,7 +458,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   top: 0;
   left: -12px;
   width: calc(100% + 24px);
-  z-index: 100;
+  z-index: 200;
   height: var(--teleprompter-h);
   background: rgba(8, 8, 18, 0.7); /* 70% opacity default */
   border: 1px solid var(--border-hi);

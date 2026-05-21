@@ -26,9 +26,10 @@ const Settings = (() => {
       export_with_tp: '导出时叠加台词',
       tag_sel_mode: '点击Tag选区',
       tag_sel_cursor: '光标→Tag', tag_sel_tag: 'Tag→下一Tag',
+      playhead_step: '播放头步进', playhead_step_unit: '帧',
       resolution: '分辨率', fps: '帧率', video_bitrate: '视频码率', audio_bitrate: '音频码率',
       camera: '摄像头', microphone: '麦克风', no_devices: '（无设备）',
-      overlay_opacity: '叠加透明度',
+      overlay_opacity: '叠加透明度', playback_compare: '回放对比模式',
       transition_type: '过渡类型', fade: '淡入淡出', optical_flow: '光流（预留）',
       transition_frames: '过渡帧数',
       tag_color: 'Tag 颜色', sel_color: '选区颜色',
@@ -91,9 +92,10 @@ const Settings = (() => {
       export_with_tp: 'Overlay script on export',
       tag_sel_mode: 'Click tag to select',
       tag_sel_cursor: 'Cursor → Tag', tag_sel_tag: 'Tag → Next Tag',
+      playhead_step: 'Playhead Step', playhead_step_unit: 'f',
       resolution: 'Resolution', fps: 'Frame Rate', video_bitrate: 'Video Bitrate', audio_bitrate: 'Audio Bitrate',
       camera: 'Camera', microphone: 'Microphone', no_devices: '(no devices)',
-      overlay_opacity: 'Overlay Opacity',
+      overlay_opacity: 'Overlay Opacity', playback_compare: 'Playback Compare',
       transition_type: 'Transition', fade: 'Fade', optical_flow: 'Optical Flow (future)',
       transition_frames: 'Transition Frames',
       tag_color: 'Tag Color', sel_color: 'Selection Color',
@@ -391,6 +393,8 @@ const Settings = (() => {
     _row(s3, t('tag_sel_mode'),
       _select('tagSelectionMode',
         [['cursor-to-tag', t('tag_sel_cursor')], ['tag-to-tag', t('tag_sel_tag')]]));
+    _row(s3, t('playhead_step'),
+      _slider('playheadStep', 1, 30, 1, t('playhead_step_unit')));
   }
 
   function _renderVideo() {
@@ -418,6 +422,8 @@ const Settings = (() => {
     _row(s2, t('overlay_opacity'),
       _slider('overlayOpacity', 0, 1, 0.05, '',
         v => State.emit('player:overlayopacity', v)));
+    _row(s2, t('playback_compare'),
+      _toggle('playbackCompareMode'));
 
     const s3 = _sec(t('sec_transition'));
     _row(s3, t('transition_type'),
