@@ -329,6 +329,13 @@ const UI = (() => {
         el.textContent = value ? '播放中' : '就绪';
       }
       document.body.classList.toggle('is-playing', value);
+
+      const btnPlay = document.getElementById('btn-play');
+      if (btnPlay) {
+        btnPlay.innerHTML = value
+          ? `<svg viewBox="0 0 20 20"><path d="M6 4h3v12h-3zM11 4h3v12h-3z" fill="currentColor" stroke="none"/></svg>`
+          : `<svg viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor" stroke="none"/></svg>`;
+      }
     });
 
     // Selection

@@ -147,7 +147,8 @@ const Keyboard = (() => {
 
   function _stepPlayhead(dir) {
     const fps   = State.get('project')?.meta?.fps || 30;
-    const frame = 1 / fps;
+    const step  = State.getSetting('playheadStep') || 1;
+    const frame = (1 / fps) * step;
     const cur   = State.get('playhead');
     const next  = Math.max(0, cur + dir * frame * _arrowSpeed);
     State.set('playhead', next);
@@ -157,7 +158,8 @@ const Keyboard = (() => {
 
   function _stepSelectionArrow(dir) {
     const fps   = State.get('project')?.meta?.fps || 30;
-    const delta = (1 / fps) * _arrowSpeed;
+    const step  = State.getSetting('playheadStep') || 1;
+    const delta = (1 / fps) * step * _arrowSpeed;
     Tags.selectShiftArrow(dir > 0 ? 'right' : 'left', delta);
   }
 

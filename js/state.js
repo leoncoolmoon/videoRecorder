@@ -51,8 +51,10 @@ const State = (() => {
 
     // Timeline
     tagSelectionMode: 'cursor-to-tag',  // 'cursor-to-tag' | 'tag-to-tag'
+    playheadStep: 1.0,                 // multiplier for frame-by-frame movement
 
     // Preview
+    playbackCompareMode: false,
     overlayOpacity: 0.30,
     previewSpeed: 1.0,
     tagColor: '#f0a040',

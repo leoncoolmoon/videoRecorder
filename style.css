@@ -458,7 +458,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   top: 0;
   left: -12px;
   width: calc(100% + 24px);
-  z-index: 100;
+  z-index: 1000;
   height: var(--teleprompter-h);
   background: rgba(8, 8, 18, 0.7); /* 70% opacity default */
   border: 1px solid var(--border-hi);
@@ -578,6 +578,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
 
 #preview-viewport {
   position: relative;
+  z-index: 1;
   width: 100%;
   height: auto;
   aspect-ratio: var(--proj-aspect, 16 / 9);
@@ -590,7 +591,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   overflow: hidden;
 }
 
-#preview-live, #preview-canvas, #preview-overlay {
+#preview-live, #preview-overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
@@ -598,9 +599,8 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   object-fit: contain;
 }
 
-#preview-live   { z-index: 1; }
-#preview-canvas { z-index: 2; }
-#preview-overlay { z-index: 3; pointer-events: none; }
+#preview-live    { z-index: 1; }
+#preview-overlay { z-index: 2; pointer-events: none; }
 
 /* HUD labels */
 .hud-label {
@@ -612,7 +612,7 @@ body.is-recording #btn-rec-toggle .rec-dot-icon {
   border-radius: var(--radius-sm);
   background: rgba(0,0,0,0.65);
   backdrop-filter: blur(4px);
-  z-index: 150; /* Above teleprompter */
+  z-index: 1100; /* Above teleprompter (1000) */
   letter-spacing: 0.02em;
   pointer-events: none;
 }

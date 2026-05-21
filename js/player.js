@@ -1,12 +1,11 @@
 /**
  * player.js — 完整合成播放器
+ * Refactored: Consolidated preview-canvas and preview-overlay into a single overlay canvas.
  */
 
 const Player = (() => {
-  let _canvas  = null;
-  let _overlay = null;
+  let _canvas  = null; // Points to #preview-overlay
   let _ctx     = null;
-  let _octx    = null;
 
   let _rafId      = null;
   let _playing    = false;
@@ -16,11 +15,10 @@ const Player = (() => {
   let _selEnd     = null;
 
   let _overlayOpacity = 0.3;
-  let _overlayTime    = 0;
 
-  const _videoEls = {};
-  const _imageEls = {};
-  const _audioNodes = {};
+  const _videoEls = {};   // layerId -> HTMLVideoElement
+  const _imageEls = {};   // src -> HTMLImageElement
+  const _audioNodes = {}; // layerId -> { source, gainNode, vid }
 
   let _audioCtx     = null;
   let _masterGain   = null;
@@ -29,10 +27,8 @@ const Player = (() => {
   let _chromaCtx    = null;
 
   function init(canvasEl) {
-    _canvas  = canvasEl || document.getElementById('preview-canvas');
-    _overlay = document.getElementById('preview-overlay');
-    if (_canvas)  _ctx  = _canvas.getContext('2d');
-    if (_overlay) _octx = _overlay.getContext('2d');
+    _canvas = canvasEl || document.getElementById('preview-overlay');
+    if (_canvas) _ctx = _canvas.getContext('2d');
 
     _chromaCanvas = document.createElement('canvas');
     _chromaCtx    = _chromaCanvas.getContext('2d', { willReadFrequently: true });
@@ -44,25 +40,24 @@ const Player = (() => {
     State.on('player:setspeed',        v  => { setSpeed(v); });
     State.on('player:overlayopacity',  v  => {
       _overlayOpacity = v;
-      _renderOverlay(_overlayTime);
       _updatePauseOpacity();
     });
     State.on('state:change:playhead',  ({ value }) => {
       if (!_playing) {
-        _overlayTime = value;
-        _renderOverlay(value);
+        _render(value);
         _updatePauseOpacity();
       }
     });
     State.on('layers:change', () => {
-      if (!_playing) _renderFrame(State.get('playhead'));
+      if (!_playing) _render(State.get('playhead'));
     });
 
     State.on('state:change:isPlaying',   () => _updatePauseOpacity());
     State.on('state:change:isRecording', () => _updatePauseOpacity());
+    State.on('settings:change:playbackCompareMode', () => _updatePauseOpacity());
 
     _updatePauseOpacity();
-    console.info('[Player] Initialized.');
+    console.info('[Player] Initialized with consolidated overlay canvas.');
   }
 
   function _initResize() {
@@ -71,8 +66,7 @@ const Player = (() => {
     const ro = new ResizeObserver(() => {
       _resizeCanvases();
       if (!_playing) {
-        _renderFrame(State.get('playhead'));
-        _renderOverlay(_overlayTime);
+        _render(State.get('playhead'));
       }
     });
     ro.observe(wrap);
@@ -84,11 +78,10 @@ const Player = (() => {
     const w = proj.width  || 1920;
     const h = proj.height || 1080;
 
-    for (const c of [_canvas, _overlay]) {
-      if (!c) continue;
-      if (c.width !== w || c.height !== h) {
-        c.width = w;
-        c.height = h;
+    if (_canvas) {
+      if (_canvas.width !== w || _canvas.height !== h) {
+        _canvas.width = w;
+        _canvas.height = h;
       }
     }
   }
@@ -132,9 +125,7 @@ const Player = (() => {
     _startTime  = time;
     _startPerfT = performance.now();
     State.set('playhead', time);
-    _overlayTime = time;
-    _renderFrame(time);
-    _renderOverlay(time);
+    _render(time);
     if (wasPlaying) play(time);
   }
 
@@ -149,20 +140,32 @@ const Player = (() => {
   }
 
   function _updatePauseOpacity() {
-    if (!_canvas || !_overlay) return;
+    if (!_canvas) return;
     const isPlaying   = State.get('isPlaying');
     const isRecording = State.get('isRecording');
+    const isCompare   = State.getSetting('playbackCompareMode');
     const isIdle      = !isPlaying && !isRecording;
 
-    // Composite canvas only during play
-    _canvas.style.opacity = isPlaying ? 1 : 0;
-
-    // Live feed during record or idle
+    // Live feed visibility
     const live = document.getElementById('preview-live');
-    if (live) live.style.opacity = (isRecording || isIdle) ? 1 : 0;
+    if (live) {
+      // Visible if recording, idle, or in comparison playback
+      // Note: During normal playback (isCompare=false), we hide live to avoid bleeding
+      live.style.opacity = (isRecording || isIdle || (isPlaying && isCompare)) ? 1 : 0;
+    }
 
-    // Ghost overlay only during idle
-    _overlay.style.opacity = isIdle ? _overlayOpacity : 0;
+    // Consolidated Overlay canvas visibility and opacity
+    if (isRecording) {
+      // Never show overlay during recording (it might be confusing/covering the feed)
+      _canvas.style.opacity = 0;
+    } else if (isPlaying) {
+      // If compare mode is ON, show overlay with partial opacity over the live feed
+      // If compare mode is OFF, show overlay with 100% opacity
+      _canvas.style.opacity = isCompare ? _overlayOpacity : 1;
+    } else {
+      // Idle: show overlay with current opacity setting (default 0.3) over live feed
+      _canvas.style.opacity = _overlayOpacity;
+    }
   }
 
   function _loop() {
@@ -174,18 +177,18 @@ const Player = (() => {
     const stopAt = (_selEnd !== null) ? _selEnd : total;
     if (stopAt > 0 && time >= stopAt) {
       State.set('playhead', stopAt);
-      _renderFrame(stopAt);
+      _render(stopAt);
       pause();
       State.emit('player:ended', {});
       return;
     }
 
     State.set('playhead', time);
-    _renderFrame(time);
+    _render(time);
     _rafId = requestAnimationFrame(() => _loop());
   }
 
-  function _renderFrame(time) {
+  function _render(time) {
     if (!_ctx || !_canvas) return;
     const w = _canvas.width, h = _canvas.height;
     _ctx.clearRect(0, 0, w, h);
@@ -214,22 +217,6 @@ const Player = (() => {
     return { canvas: c, ctx: c.getContext('2d') };
   }
 
-  function _renderOverlay(time) {
-    if (!_octx || !_overlay) return;
-    const w = _overlay.width, h = _overlay.height;
-    _octx.clearRect(0, 0, w, h);
-
-    const isIdle = !State.get('isPlaying') && !State.get('isRecording');
-    _overlay.style.opacity = isIdle ? _overlayOpacity : 0;
-
-    _octx.save();
-    const layers = _getActiveLayers(time);
-    for (const layer of layers) {
-      _drawLayer(_octx, layer, time, w, h, false);
-    }
-    _octx.restore();
-  }
-
   function _getActiveLayers(time) {
     return Layers.getAll()
       .filter(l => l.timelineStart <= time && l.timelineEnd > time)
@@ -238,7 +225,8 @@ const Player = (() => {
 
   function _drawLayer(ctx, layer, time, cw, ch, forExport) {
     if (layer.type === 'audio') return;
-    let x = layer.x * cw, y = layer.y * ch, lw = layer.width * cw, lh = layer.height * ch;
+    let x = (layer.x ?? 0) * cw, y = (layer.y ?? 0) * ch;
+    let lw = (layer.width ?? 1) * cw, lh = (layer.height ?? 1) * ch;
 
     ctx.save();
     ctx.globalAlpha = layer.opacity ?? 1;
@@ -255,9 +243,18 @@ const Player = (() => {
       const vid = _getVideo(layer);
       if (vid) {
         const srcTime = layer.sourceStart + (time - layer.timelineStart) * (layer.speed ?? 1);
-        if (!_playing || forExport) {
-          if (Math.abs(vid.currentTime - srcTime) > 0.08) vid.currentTime = Math.max(0, srcTime);
+
+        // Sync time if paused, scrubbing, or if we drift too much during playback
+        const drift = Math.abs(vid.currentTime - srcTime);
+        if (!_playing || forExport || drift > 0.2) {
+          vid.currentTime = Math.max(0, srcTime);
         }
+
+        // Ensure playing if we are in the playback loop
+        if (_playing && !forExport && vid.paused && vid.readyState >= 2) {
+          vid.play().catch(() => {});
+        }
+
         if (vid.readyState >= 2) {
           const { dx, dy, dw, dh } = _fitInRect(vid.videoWidth, vid.videoHeight, x, y, lw, lh);
           if (layer.chromaKey) _drawWithChromaKey(ctx, vid, dx, dy, dw, dh, layer.chromaKey);
@@ -293,7 +290,7 @@ const Player = (() => {
     if (!src) return null;
     if (!_imageEls[src]) {
       const img = new Image(); img.crossOrigin = 'anonymous';
-      img.onload = () => { if (!_playing) _renderFrame(State.get('playhead')); };
+      img.onload = () => { if (!_playing) _render(State.get('playhead')); };
       img.src = src; _imageEls[src] = img;
     }
     return _imageEls[src];
@@ -301,13 +298,19 @@ const Player = (() => {
 
   function _getVideo(layer) {
     if (!layer.src) return null;
-    if (!_videoEls[layer.src]) {
-      const vid = document.createElement('video'); vid.src = layer.src; vid.muted = true; vid.preload = 'auto'; vid.crossOrigin = 'anonymous';
-      vid.addEventListener('seeked', () => { if (!_playing) _renderFrame(State.get('playhead')); });
-      _videoEls[layer.src] = vid;
+    const key = layer.id || layer.src;
+    if (!_videoEls[key]) {
+      const vid = document.createElement('video');
+      vid.src = layer.src;
+      vid.muted = true;
+      vid.preload = 'auto';
+      vid.crossOrigin = 'anonymous';
+      vid.playsInline = true;
+      vid.addEventListener('seeked', () => { if (!_playing) _render(State.get('playhead')); });
+      _videoEls[key] = vid;
     }
-    _videoEls[layer.src].playbackRate = layer.speed ?? 1;
-    return _videoEls[layer.src];
+    _videoEls[key].playbackRate = (layer.speed ?? 1) * (_speed || 1);
+    return _videoEls[key];
   }
 
   function _startAudioLayers(startTime) {
@@ -358,7 +361,7 @@ const Player = (() => {
     });
   }
 
-  function renderOverlay(time) { _overlayTime = time; _renderOverlay(time); }
+  function renderOverlay(time) { _render(time); }
 
   return { init, play, pause, seek, setSpeed, getFrame, renderOverlay };
 })();
