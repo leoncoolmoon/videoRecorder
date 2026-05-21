@@ -16,9 +16,9 @@ const Player = (() => {
 
   let _overlayOpacity = 0.3;
 
-  const _videoEls = {};
-  const _imageEls = {};
-  const _audioNodes = {};
+  const _videoEls = {};   // layerId -> HTMLVideoElement
+  const _imageEls = {};   // src -> HTMLImageElement
+  const _audioNodes = {}; // layerId -> { source, gainNode, vid }
 
   let _audioCtx     = null;
   let _masterGain   = null;
@@ -150,16 +150,20 @@ const Player = (() => {
     const live = document.getElementById('preview-live');
     if (live) {
       // Visible if recording, idle, or in comparison playback
+      // Note: During normal playback (isCompare=false), we hide live to avoid bleeding
       live.style.opacity = (isRecording || isIdle || (isPlaying && isCompare)) ? 1 : 0;
     }
 
     // Consolidated Overlay canvas visibility and opacity
     if (isRecording) {
+      // Never show overlay during recording (it might be confusing/covering the feed)
       _canvas.style.opacity = 0;
     } else if (isPlaying) {
+      // If compare mode is ON, show overlay with partial opacity over the live feed
+      // If compare mode is OFF, show overlay with 100% opacity
       _canvas.style.opacity = isCompare ? _overlayOpacity : 1;
     } else {
-      // Idle
+      // Idle: show overlay with current opacity setting (default 0.3) over live feed
       _canvas.style.opacity = _overlayOpacity;
     }
   }
@@ -221,7 +225,8 @@ const Player = (() => {
 
   function _drawLayer(ctx, layer, time, cw, ch, forExport) {
     if (layer.type === 'audio') return;
-    let x = layer.x * cw, y = layer.y * ch, lw = layer.width * cw, lh = layer.height * ch;
+    let x = (layer.x ?? 0) * cw, y = (layer.y ?? 0) * ch;
+    let lw = (layer.width ?? 1) * cw, lh = (layer.height ?? 1) * ch;
 
     ctx.save();
     ctx.globalAlpha = layer.opacity ?? 1;
@@ -238,9 +243,18 @@ const Player = (() => {
       const vid = _getVideo(layer);
       if (vid) {
         const srcTime = layer.sourceStart + (time - layer.timelineStart) * (layer.speed ?? 1);
-        if (!_playing || forExport) {
-          if (Math.abs(vid.currentTime - srcTime) > 0.08) vid.currentTime = Math.max(0, srcTime);
+
+        // Sync time if paused, scrubbing, or if we drift too much during playback
+        const drift = Math.abs(vid.currentTime - srcTime);
+        if (!_playing || forExport || drift > 0.2) {
+          vid.currentTime = Math.max(0, srcTime);
         }
+
+        // Ensure playing if we are in the playback loop
+        if (_playing && !forExport && vid.paused && vid.readyState >= 2) {
+          vid.play().catch(() => {});
+        }
+
         if (vid.readyState >= 2) {
           const { dx, dy, dw, dh } = _fitInRect(vid.videoWidth, vid.videoHeight, x, y, lw, lh);
           if (layer.chromaKey) _drawWithChromaKey(ctx, vid, dx, dy, dw, dh, layer.chromaKey);
@@ -284,13 +298,19 @@ const Player = (() => {
 
   function _getVideo(layer) {
     if (!layer.src) return null;
-    if (!_videoEls[layer.src]) {
-      const vid = document.createElement('video'); vid.src = layer.src; vid.muted = true; vid.preload = 'auto'; vid.crossOrigin = 'anonymous';
+    const key = layer.id || layer.src;
+    if (!_videoEls[key]) {
+      const vid = document.createElement('video');
+      vid.src = layer.src;
+      vid.muted = true;
+      vid.preload = 'auto';
+      vid.crossOrigin = 'anonymous';
+      vid.playsInline = true;
       vid.addEventListener('seeked', () => { if (!_playing) _render(State.get('playhead')); });
-      _videoEls[layer.src] = vid;
+      _videoEls[key] = vid;
     }
-    _videoEls[layer.src].playbackRate = layer.speed ?? 1;
-    return _videoEls[layer.src];
+    _videoEls[key].playbackRate = (layer.speed ?? 1) * (_speed || 1);
+    return _videoEls[key];
   }
 
   function _startAudioLayers(startTime) {
